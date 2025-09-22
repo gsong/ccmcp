@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 import { parseArgs } from "util";
 import { scanMcpConfigs } from "./mcp-scanner.js";
@@ -44,7 +44,7 @@ async function runSelector(
 
 async function main() {
   const { values, positionals } = parseArgs({
-    args: Bun.argv.slice(2),
+    args: process.argv.slice(2),
     options: {
       help: {
         type: "boolean",

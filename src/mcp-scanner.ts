@@ -23,6 +23,7 @@ export async function scanMcpConfigs(): Promise<McpConfig[]> {
     const files = await readdir(configDir);
     const jsonFiles = files.filter((file) => file.endsWith(".json"));
 
+    // Process files in parallel for better performance
     const configs = await Promise.all(
       jsonFiles.map(async (file): Promise<McpConfig> => {
         const filePath = join(configDir, file);

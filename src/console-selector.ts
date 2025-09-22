@@ -1,3 +1,4 @@
+import { createInterface } from "readline";
 import type { McpConfig } from "./mcp-scanner.js";
 
 export async function selectConfigs(
@@ -60,7 +61,7 @@ export async function selectConfigs(
       .filter((i) => i >= 0 && i < validConfigs.length);
 
     const uniqueIndexes = [...new Set(selectedIndexes)];
-    return uniqueIndexes.map((i) => validConfigs[i]);
+    return uniqueIndexes.map((i) => validConfigs[i]!).filter(Boolean);
   } catch (error) {
     console.log("Invalid input. Launching without configs...");
     return [];
@@ -68,16 +69,33 @@ export async function selectConfigs(
 }
 
 function readInput(prompt: string): Promise<string> {
-  return new Promise((resolve) => {
-    process.stdout.write(prompt);
+  return new Promise((resolve, reject) => {
+    const rl = createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      terminal: true,
+    });
 
-    const onData = (data: Buffer) => {
-      process.stdin.off("data", onData);
-      process.stdin.pause();
-      resolve(data.toString().trim());
+    // Improve responsiveness by handling terminal signals
+    const cleanup = () => {
+      rl.close();
     };
 
-    process.stdin.resume();
-    process.stdin.on("data", onData);
+    process.once("SIGINT", cleanup);
+    process.once("SIGTERM", cleanup);
+
+    rl.question(prompt, (answer) => {
+      process.removeListener("SIGINT", cleanup);
+      process.removeListener("SIGTERM", cleanup);
+      rl.close();
+      resolve(answer.trim());
+    });
+
+    rl.on("error", (error) => {
+      process.removeListener("SIGINT", cleanup);
+      process.removeListener("SIGTERM", cleanup);
+      rl.close();
+      reject(error);
+    });
   });
 }

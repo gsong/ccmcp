@@ -1,21 +1,21 @@
 {
   "name": "ccmcp",
   "version": "0.1.0",
-  "description": "CLI tool built with Bun and TypeScript",
+  "description": "CLI tool built with Node.js and TypeScript",
   "bin": {
-    "ccmcp": "./ccmcp"
+    "ccmcp": "./dist/index.js"
   },
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "bun build src/index.ts --compile --outfile=ccmcp --minify --sourcemap=none",
-    "dev": "bun run src/index.ts"
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "clean": "rm -rf dist"
   },
-  "dependencies": {},
+  "packageManager": "pnpm@10.17.0",
   "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
+    "@types/node": "^22",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
   }
 }
