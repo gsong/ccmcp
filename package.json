@@ -2,6 +2,7 @@
   "name": "ccmcp",
   "version": "0.1.0",
   "description": "Claude Code MCP Selector - Intelligently discover, validate, and select MCP server configurations for Claude Code",
+  "license": "MIT",
   "bin": {
     "ccmcp": "./dist/index.js"
   },
