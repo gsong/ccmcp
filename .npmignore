@@ -1,0 +1,69 @@
+# Source code (only publish compiled dist/)
+src/
+
+# TypeScript and build configs
+tsconfig.json
+biome.json
+
+# Development dependencies and configs
+node_modules/
+pnpm-lock.yaml
+.pnpm-debug.log*
+
+# Development and test files
+coverage/
+*.lcov
+*.tsbuildinfo
+test/
+tests/
+__tests__/
+*.test.*
+*.spec.*
+
+# Version control
+.git/
+.gitignore
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime and cache files
+.cache/
+.npm/
+.eslintcache
+
+# Environment files
+.env*
+!.env.example
+
+# Claude Code specific
+.claude/
+
+# Build artifacts that shouldn't be published
+out/
+build/
+*.tgz
+
+# Documentation that's not needed in package
+docs/
+.github/

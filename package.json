@@ -1,13 +1,33 @@
 {
-  "name": "ccmcp",
+  "name": "@gsong/ccmcp",
   "version": "0.1.0",
   "description": "Claude Code MCP Selector - Intelligently discover, validate, and select MCP server configurations for Claude Code",
   "license": "MIT",
+  "author": "George Song",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gsong/ccmcp.git"
+  },
+  "homepage": "https://github.com/gsong/ccmcp",
+  "keywords": [
+    "claude",
+    "mcp",
+    "cli",
+    "selector",
+    "configuration"
+  ],
   "bin": {
     "ccmcp": "./dist/index.js"
   },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "type": "module",
-  "private": true,
   "scripts": {
     "build": "biome check src && tsc",
     "dev": "tsx src/index.ts",
