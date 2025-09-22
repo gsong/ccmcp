@@ -1,7 +1,7 @@
 {
   "name": "ccmcp",
   "version": "0.1.0",
-  "description": "CLI tool built with Node.js and TypeScript",
+  "description": "Claude Code MCP Selector - Intelligently discover, validate, and select MCP server configurations for Claude Code",
   "bin": {
     "ccmcp": "./dist/index.js"
   },
