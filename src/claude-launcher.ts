@@ -64,16 +64,19 @@ export async function launchClaudeCode({
       // This function should not return since we're replacing the process
       return new Promise<number>(() => {});
     } catch (error: unknown) {
+      const errorWithStatus = error as { status?: number; message?: string };
       if (
-        (error as any).status === 1 ||
-        (error as any).message?.includes("command not found")
+        errorWithStatus.status === 1 ||
+        errorWithStatus.message?.includes("command not found")
       ) {
         console.error(
           "Error: 'claude' command not found. Please ensure Claude Code is installed and in your PATH.",
         );
         return Promise.resolve(1);
       } else {
-        console.error(`Failed to exec Claude Code: ${(error as any).message}`);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        console.error(`Failed to exec Claude Code: ${errorMessage}`);
         return Promise.resolve(1);
       }
     }
