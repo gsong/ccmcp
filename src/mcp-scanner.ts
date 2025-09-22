@@ -1,6 +1,6 @@
-import { readdir, readFile, stat } from "fs/promises";
-import { join } from "path";
-import { homedir } from "os";
+import { readdir, readFile, stat } from "node:fs/promises";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
 export interface McpConfig {
   name: string;

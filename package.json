@@ -8,13 +8,17 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "tsc",
+    "build": "biome check src && tsc",
     "dev": "tsx src/index.ts",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "lint": "biome check src",
+    "lint:fix": "biome check --write src",
+    "format": "biome format --write src"
   },
   "packageManager": "pnpm@10.17.0",
   "devDependencies": {
-    "@types/node": "^22",
+    "@biomejs/biome": "^2.2.4",
+    "@types/node": "^24.5.2",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   }

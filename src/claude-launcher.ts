@@ -1,4 +1,4 @@
-import { spawn, execFileSync } from "child_process";
+import { execFileSync, spawn } from "node:child_process";
 import type { McpConfig } from "./mcp-scanner.js";
 
 export interface LaunchOptions {
@@ -63,14 +63,17 @@ export async function launchClaudeCode({
 
       // This function should not return since we're replacing the process
       return new Promise<number>(() => {});
-    } catch (error: any) {
-      if (error.status === 1 || error.message.includes("command not found")) {
+    } catch (error: unknown) {
+      if (
+        (error as any).status === 1 ||
+        (error as any).message?.includes("command not found")
+      ) {
         console.error(
           "Error: 'claude' command not found. Please ensure Claude Code is installed and in your PATH.",
         );
         return Promise.resolve(1);
       } else {
-        console.error(`Failed to exec Claude Code: ${error.message}`);
+        console.error(`Failed to exec Claude Code: ${(error as any).message}`);
         return Promise.resolve(1);
       }
     }

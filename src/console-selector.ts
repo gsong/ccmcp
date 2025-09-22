@@ -1,4 +1,4 @@
-import { createInterface } from "readline";
+import { createInterface } from "node:readline";
 import type { McpConfig } from "./mcp-scanner.js";
 
 export async function selectConfigs(
@@ -57,12 +57,14 @@ export async function selectConfigs(
   try {
     const selectedIndexes = trimmed
       .split(",")
-      .map((s) => parseInt(s.trim()) - 1)
+      .map((s) => parseInt(s.trim(), 10) - 1)
       .filter((i) => i >= 0 && i < validConfigs.length);
 
     const uniqueIndexes = [...new Set(selectedIndexes)];
-    return uniqueIndexes.map((i) => validConfigs[i]!).filter(Boolean);
-  } catch (error) {
+    return uniqueIndexes
+      .map((i) => validConfigs[i])
+      .filter((config) => config !== undefined);
+  } catch (_error) {
     console.log("Invalid input. Launching without configs...");
     return [];
   }

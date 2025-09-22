@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-import { parseArgs } from "util";
-import { scanMcpConfigs } from "./mcp-scanner.js";
-import { selectConfigs } from "./console-selector.js";
+import { parseArgs } from "node:util";
 import { launchClaudeCode } from "./claude-launcher.js";
+import { selectConfigs } from "./console-selector.js";
 import type { McpConfig } from "./mcp-scanner.js";
+import { scanMcpConfigs } from "./mcp-scanner.js";
 
 interface CliArgs {
   help?: boolean;
