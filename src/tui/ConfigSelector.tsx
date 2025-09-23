@@ -155,7 +155,10 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
         <Text>
           Use ↑/↓ to navigate, Space to select/deselect, Enter to confirm
         </Text>
-        <Text>Keys: (a)ll, (c)lear, (p)review, (i)nvalid configs, (q)uit</Text>
+        <Text>
+          Keys: (a)ll, (c)lear, (p)review
+          {invalidConfigs.length > 0 && ", (i)nvalid configs"}, (q)uit
+        </Text>
       </Box>
 
       {/* Main content area */}
