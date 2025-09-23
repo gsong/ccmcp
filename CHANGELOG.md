@@ -4,6 +4,21 @@
 
 ### Features
 
+## [v0.3.1] - 2025-09-23
+
+### Features
+
+- Add prettier formatting to CHANGELOG.md generation
+
+### Bug Fixes
+
+- Fix CLI arguments not being properly passed through to Claude
+
+### Improvements
+
+- Improve CHANGELOG formatting with consistent spacing
+- Update documentation for v0.3.0 TUI features
+
 - Add Ink TUI for interactive config selection
 - Hide invalid configs option when no invalid configs exist
 - Add collapsible error details in TUI invalid configs view
