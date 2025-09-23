@@ -89,7 +89,7 @@ async function generateReleaseNotes(categories, _lastTag, newVersion) {
     .filter(([_, commits]) => commits.length > 0)
     .map(
       ([category, commits]) =>
-        `${category.toUpperCase()}:\n${commits.map((c) => `- ${c}`).join("\n")}`,
+        `${category.toUpperCase()}:\n${commits.map((c) => `- ${c.replace(/^[a-f0-9]+\s+/, "")}`).join("\n")}`,
     )
     .join("\n\n");
 
@@ -97,33 +97,32 @@ async function generateReleaseNotes(categories, _lastTag, newVersion) {
     return `## [${newVersion}] - ${new Date().toISOString().split("T")[0]}\n\nNo significant changes in this release.`;
   }
 
-  const prompt = `Generate professional release notes for version ${newVersion} based on these conventional commits:
+  const prompt = `Generate concise release notes for version ${newVersion} based on these conventional commits:
 
 ${commitSummary}
 
 Requirements:
 - Use markdown format with ## [${newVersion}] - ${new Date().toISOString().split("T")[0]} as header
-- Group changes into logical sections (Features, Bug Fixes, Improvements, Breaking Changes)
-- Write user-focused descriptions that explain the value/impact
-- Keep descriptions concise but informative
-- Use bullet points for individual changes
-- If there are breaking changes, highlight them prominently
-- Focus on what users will experience, not implementation details
+- Group changes into sections: Features, Bug Fixes, Improvements, Breaking Changes
+- Write brief, direct descriptions (one line per change)
+- Use bullet points without bold formatting
+- No marketing language or detailed explanations
+- Focus on what changed, not implementation details
 
 Example format:
 ## [1.2.0] - 2024-03-15
 
-### 🚀 Features
-- **New Feature**: Description of what users can now do
+### Features
+- Add new authentication system
+- Support for configuration files
 
-### 🐛 Bug Fixes
-- **Issue Fixed**: How this improves the user experience
+### Bug Fixes
+- Fix memory leak in parser
+- Resolve timeout issues
 
-### ⚡ Improvements
-- **Performance**: What got better for users
-
-### ⚠️ Breaking Changes
-- **Important**: What users need to know/do`;
+### Improvements
+- Improve startup performance
+- Update dependencies`;
 
   try {
     // Write prompt to temporary file
@@ -156,23 +155,23 @@ function generateBasicReleaseNotes(categories, newVersion) {
   let notes = `## [${newVersion}] - ${date}\n\n`;
 
   if (categories.breaking.length > 0) {
-    notes += `### ⚠️ Breaking Changes\n${categories.breaking.map((c) => `- ${c.replace(/^[^:]+:\s*/, "")}`).join("\n")}\n\n`;
+    notes += `### Breaking Changes\n${categories.breaking.map((c) => `- ${c.replace(/^[^:]+:\s*/, "")}`).join("\n")}\n\n`;
   }
 
   if (categories.features.length > 0) {
-    notes += `### 🚀 Features\n${categories.features.map((c) => `- ${c.replace(/^feat[^:]*:\s*/, "")}`).join("\n")}\n\n`;
+    notes += `### Features\n${categories.features.map((c) => `- ${c.replace(/^feat[^:]*:\s*/, "")}`).join("\n")}\n\n`;
   }
 
   if (categories.fixes.length > 0) {
-    notes += `### 🐛 Bug Fixes\n${categories.fixes.map((c) => `- ${c.replace(/^fix[^:]*:\s*/, "")}`).join("\n")}\n\n`;
+    notes += `### Bug Fixes\n${categories.fixes.map((c) => `- ${c.replace(/^fix[^:]*:\s*/, "")}`).join("\n")}\n\n`;
   }
 
   if (categories.improvements.length > 0) {
-    notes += `### ⚡ Improvements\n${categories.improvements.map((c) => `- ${c.replace(/^[^:]+:\s*/, "")}`).join("\n")}\n\n`;
+    notes += `### Improvements\n${categories.improvements.map((c) => `- ${c.replace(/^[^:]+:\s*/, "")}`).join("\n")}\n\n`;
   }
 
   if (categories.other.length > 0) {
-    notes += `### 📝 Other Changes\n${categories.other.map((c) => `- ${c}`).join("\n")}\n\n`;
+    notes += `### Other Changes\n${categories.other.map((c) => `- ${c.replace(/^[^:]+:\s*/, "")}`).join("\n")}\n\n`;
   }
 
   return notes.trim();
@@ -205,7 +204,6 @@ function updateChangelog(releaseNotes) {
   }
 
   writeFileSync(changelogPath, lines.join("\n"));
-  console.log("✅ Updated CHANGELOG.md");
 }
 
 /**
@@ -218,13 +216,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`🔍 Generating release notes for version ${newVersion}...`);
-
   const { lastTag, commits } = getCommitsSinceLastTag();
-  console.log(
-    `📋 Found ${commits.split("\n").filter((l) => l.trim()).length} commits since ${lastTag || "project start"}`,
-  );
-
   const categories = parseCommits(commits);
   const releaseNotes = await generateReleaseNotes(
     categories,
@@ -234,16 +226,9 @@ async function main() {
 
   updateChangelog(releaseNotes);
 
-  // Output release notes for use in git tag
-  console.log("\n📝 Generated release notes:");
-  console.log("=".repeat(50));
-  console.log(releaseNotes);
-  console.log("=".repeat(50));
-
   // Save release notes to temp file for git tag
   const tagNotesPath = join(projectRoot, ".tmp-tag-notes.txt");
   writeFileSync(tagNotesPath, releaseNotes);
-  console.log(`💾 Release notes saved to ${tagNotesPath} for git tagging`);
 }
 
 main().catch(console.error);
