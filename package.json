@@ -59,5 +59,10 @@
     "prettier": "^3.6.2",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@types/react": "^19.1.13",
+    "ink": "^6.3.1",
+    "react": "^19.1.1"
   }
 }

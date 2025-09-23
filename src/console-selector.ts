@@ -1,5 +1,8 @@
 import { createInterface } from "node:readline";
+import { render } from "ink";
+import React from "react";
 import type { McpConfig } from "./mcp-scanner.js";
+import { ConfigSelector } from "./tui/index.js";
 
 function createSignalCleanup(cleanup: () => void): () => void {
   const signals: NodeJS.Signals[] = ["SIGINT", "SIGTERM"];
@@ -15,6 +18,10 @@ function createSignalCleanup(cleanup: () => void): () => void {
   };
 }
 
+function isTTY(): boolean {
+  return process.stdin.isTTY && process.stdout.isTTY;
+}
+
 export async function selectConfigs(
   configs: McpConfig[],
   configDir: string,
@@ -26,6 +33,32 @@ export async function selectConfigs(
     return [];
   }
 
+  // Use Ink TUI if we're in a TTY environment
+  if (isTTY()) {
+    return new Promise<McpConfig[]>((resolve) => {
+      const { waitUntilExit } = render(
+        React.createElement(ConfigSelector, {
+          configs,
+          configDir,
+          onSelect: (selectedConfigs: McpConfig[]) => {
+            // Wait for TUI to fully exit before resolving
+            waitUntilExit().then(() => {
+              resolve(selectedConfigs);
+            });
+          },
+        }),
+      );
+    });
+  }
+
+  // Fallback to readline interface for non-TTY environments
+  return selectConfigsReadline(configs, configDir);
+}
+
+async function selectConfigsReadline(
+  configs: McpConfig[],
+  _configDir: string,
+): Promise<McpConfig[]> {
   console.log("\nAvailable MCP configs:");
   console.log("======================");
 

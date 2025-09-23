@@ -37,6 +37,10 @@ export async function launchClaudeCode({
 
       console.log(`Executing: ${claudePath} ${args.join(" ")}`);
 
+      // Flush stdio to ensure clean handover
+      process.stdout.write("");
+      process.stderr.write("");
+
       // Build command with proper shell escaping
       const escapedArgs = args.map((arg) => `"${arg.replace(/"/g, '\\"')}"`);
       const command = `exec "${claudePath}" ${escapedArgs.join(" ")}`;
