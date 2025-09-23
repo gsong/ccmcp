@@ -97,7 +97,9 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
           newExpanded.clear();
         } else {
           // Otherwise, expand all
-          invalidConfigs.forEach((_, index) => newExpanded.add(index));
+          invalidConfigs.forEach((_, index) => {
+            newExpanded.add(index);
+          });
         }
         setExpandedInvalidConfigs(newExpanded);
       }
@@ -121,10 +123,7 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
 
       return (
         <Box key={config.path}>
-          <Text
-            backgroundColor={isCurrent ? "blue" : undefined}
-            color={isCurrent ? "white" : undefined}
-          >
+          <Text inverse={isCurrent} bold={isCurrent}>
             {checkbox} <StatusIndicator valid={config.valid} /> {config.name} -{" "}
             {config.description}
           </Text>
@@ -140,9 +139,7 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
         <Text color="yellow">
           No valid MCP configs found in {configDir || "~/.claude/mcp-configs/"}
         </Text>
-        <Text dimColor>
-          Press any key to launch Claude Code without configs...
-        </Text>
+        <Text>Press any key to launch Claude Code without configs...</Text>
         {invalidConfigs.length > 0 && invalidConfigs[0] && (
           <ErrorDisplay config={invalidConfigs[0]} expanded />
         )}
@@ -155,12 +152,10 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
       {/* Header */}
       <Box flexDirection="column" marginBottom={1}>
         <Text bold>Available MCP Configs</Text>
-        <Text dimColor>
+        <Text>
           Use ↑/↓ to navigate, Space to select/deselect, Enter to confirm
         </Text>
-        <Text dimColor>
-          Keys: (a)ll, (c)lear, (p)review, (i)nvalid configs, (q)uit
-        </Text>
+        <Text>Keys: (a)ll, (c)lear, (p)review, (i)nvalid configs, (q)uit</Text>
       </Box>
 
       {/* Main content area */}
@@ -187,7 +182,7 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
           <Text bold color="red">
             Invalid Configs ({invalidConfigs.length}):
           </Text>
-          <Text dimColor>Press 'e' to toggle error details</Text>
+          <Text>Press 'e' to toggle error details</Text>
           {invalidConfigs.map((config, index) => (
             <ErrorDisplay
               key={config.path}
@@ -203,7 +198,7 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
         <Text>
           Selected: {selectedIndices.size} config(s)
           {selectedIndices.size > 0 && (
-            <Text dimColor>
+            <Text color="blue">
               {" "}
               -{" "}
               {Array.from(selectedIndices)

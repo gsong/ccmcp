@@ -52,7 +52,7 @@ export const ConfigPreview: React.FC<ConfigPreviewProps> = ({
         padding={1}
         flexDirection="column"
       >
-        <Text dimColor>Select a config to preview</Text>
+        <Text color="cyan">Select a config to preview</Text>
       </Box>
     );
   }
@@ -68,11 +68,11 @@ export const ConfigPreview: React.FC<ConfigPreviewProps> = ({
     >
       <Box marginBottom={1}>
         <Text bold>{config.name}</Text>
-        <Text dimColor> - {config.description}</Text>
+        <Text color="blue"> - {config.description}</Text>
       </Box>
 
       {loading ? (
-        <Text dimColor>Loading...</Text>
+        <Text color="cyan">Loading...</Text>
       ) : (
         <Box flexDirection="column" flexGrow={1} overflow="hidden">
           {content
@@ -85,7 +85,9 @@ export const ConfigPreview: React.FC<ConfigPreviewProps> = ({
                   : line}
               </Text>
             ))}
-          {content.split("\n").length > height - 3 && <Text dimColor>...</Text>}
+          {content.split("\n").length > height - 3 && (
+            <Text color="blue">...</Text>
+          )}
         </Box>
       )}
     </Box>

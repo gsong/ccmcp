@@ -19,8 +19,10 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
     <Box flexDirection="column" marginLeft={2}>
       <Box>
         <Text color="red">✗ {config.name}</Text>
-        <Text dimColor> - {config.description}</Text>
-        {!expanded && <Text dimColor> (Press 'e' to see error details)</Text>}
+        <Text color="blue"> - {config.description}</Text>
+        {!expanded && (
+          <Text color="magenta"> (Press 'e' to see error details)</Text>
+        )}
       </Box>
       {expanded && config.error && (
         <Box
@@ -34,7 +36,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
               Error Details:
             </Text>
             <Text color="red">{config.error}</Text>
-            <Text dimColor>Path: {config.path}</Text>
+            <Text color="yellow">Path: {config.path}</Text>
           </Box>
         </Box>
       )}
