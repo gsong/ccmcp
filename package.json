@@ -31,13 +31,14 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "clean": "rm -rf dist",
-    "check": "biome check src",
+    "lint": "biome check src scripts",
+    "lint:fix": "biome check --write src scripts",
+    "format": "biome format --write src scripts",
+    "format:other": "prettier --write '**/*.{md,json,yaml,yml}'",
     "type-check": "tsc --noEmit",
+    "fix": "run-s lint:fix format format:other type-check",
     "compile": "tsc",
-    "build": "run-s check compile",
-    "lint": "biome check src",
-    "lint:fix": "biome check --write src",
-    "format": "biome format --write src",
+    "build": "run-s lint type-check compile",
     "git-tag": "git tag \"v$(node -p \"require('./package.json').version\")\"",
     "git-push-tag": "git push origin \"v$(node -p \"require('./package.json').version\")\"",
     "npm-publish": "pnpm publish --access public",
@@ -46,15 +47,16 @@
     "publish:dry-run": "run-s build npm-publish-dry",
     "generate-release-notes": "node scripts/generate-release-notes.js",
     "clean-release-files": "rm -f .tmp-tag-notes.txt .tmp-release-prompt.txt",
-    "release:patch": "git status --porcelain | grep -q . && echo 'Working directory not clean' && exit 1 || (NEW_VERSION=$(npm version patch --no-git-tag-version) && npm run generate-release-notes $NEW_VERSION && git add . && git commit -m \"chore: release $NEW_VERSION\" && git tag -a \"$NEW_VERSION\" -F .tmp-tag-notes.txt && npm run clean-release-files && git push --follow-tags && npm run build && npm run npm-publish)",
-    "release:minor": "git status --porcelain | grep -q . && echo 'Working directory not clean' && exit 1 || (NEW_VERSION=$(npm version minor --no-git-tag-version) && npm run generate-release-notes $NEW_VERSION && git add . && git commit -m \"chore: release $NEW_VERSION\" && git tag -a \"$NEW_VERSION\" -F .tmp-tag-notes.txt && npm run clean-release-files && git push --follow-tags && npm run build && npm run npm-publish)",
-    "release:major": "git status --porcelain | grep -q . && echo 'Working directory not clean' && exit 1 || (NEW_VERSION=$(npm version major --no-git-tag-version) && npm run generate-release-notes $NEW_VERSION && git add . && git commit -m \"chore: release $NEW_VERSION\" && git tag -a \"$NEW_VERSION\" -F .tmp-tag-notes.txt && npm run clean-release-files && git push --follow-tags && npm run build && npm run npm-publish)"
+    "release:patch": "node scripts/release.js patch",
+    "release:minor": "node scripts/release.js minor",
+    "release:major": "node scripts/release.js major"
   },
   "packageManager": "pnpm@10.17.0",
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
     "@types/node": "^24.5.2",
     "npm-run-all2": "^8.0.4",
+    "prettier": "^3.6.2",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   }
