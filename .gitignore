@@ -33,3 +33,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# temporary release files
+.tmp-tag-notes.txt
+.tmp-release-prompt.txt
