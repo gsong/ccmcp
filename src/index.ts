@@ -71,8 +71,45 @@ function validateConfigDir(configDir: string): void {
 }
 
 function parseCliArgs(): { values: CliArgs; positionals: string[] } {
+  const rawArgs = process.argv.slice(2);
+
+  // Manually separate ccmcp's own flags from passthrough args
+  const ccmcpArgs: string[] = [];
+  const passthroughArgs: string[] = [];
+
+  for (let i = 0; i < rawArgs.length; i++) {
+    const arg = rawArgs[i];
+
+    // Check if this is a ccmcp flag
+    if (
+      arg === "-h" ||
+      arg === "--help" ||
+      arg === "-v" ||
+      arg === "--version" ||
+      arg === "-c" ||
+      arg === "--config-dir"
+    ) {
+      ccmcpArgs.push(arg);
+
+      // If it's config-dir, also grab the next argument (the value)
+      if ((arg === "-c" || arg === "--config-dir") && i + 1 < rawArgs.length) {
+        i++;
+        const nextArg = rawArgs[i];
+        if (nextArg) {
+          ccmcpArgs.push(nextArg);
+        }
+      }
+    } else {
+      // Everything else is a passthrough argument
+      if (arg) {
+        passthroughArgs.push(arg);
+      }
+    }
+  }
+
+  // Parse only ccmcp's own arguments
   const result = parseArgs({
-    args: process.argv.slice(2),
+    args: ccmcpArgs,
     options: {
       help: {
         type: "boolean",
@@ -87,8 +124,8 @@ function parseCliArgs(): { values: CliArgs; positionals: string[] } {
         short: "c",
       },
     },
-    allowPositionals: true,
-    strict: false,
+    allowPositionals: false,
+    strict: true,
   }) as { values: CliArgs; positionals: string[] };
 
   // Validate config-dir if provided
@@ -96,7 +133,7 @@ function parseCliArgs(): { values: CliArgs; positionals: string[] } {
     validateConfigDir(result.values["config-dir"]);
   }
 
-  return result;
+  return { values: result.values, positionals: passthroughArgs };
 }
 
 async function main() {
