@@ -22,15 +22,33 @@ Ever have multiple MCP server configs but only want to use specific ones for dif
 
 ## Installation
 
-Install dependencies:
+### Via npm (Recommended)
+
+Install globally to use anywhere:
 
 ```bash
-pnpm install
+# Using npm
+npm install -g @gsong/ccmcp
+
+# Using pnpm
+pnpm add -g @gsong/ccmcp
+
+# Using yarn
+yarn global add @gsong/ccmcp
+
+# Or run without installing
+npx @gsong/ccmcp
 ```
 
-Build the project:
+### From Source
+
+Clone and build locally:
 
 ```bash
+# Install dependencies
+pnpm install
+
+# Build the project
 pnpm run build
 ```
 
@@ -105,29 +123,12 @@ The tool will show which configs have issues. Common problems:
 - Missing required `mcpServers` or `mcp_servers` field
 - File permission issues
 
-## Development
+## Contributing
 
-### Scripts
+Interested in contributing? See [DEVELOPMENT.md](DEVELOPMENT.md) for:
 
-```bash
-# Development mode with auto-reload
-pnpm run dev
-
-# Build for production
-pnpm run build
-
-# Clean build artifacts
-pnpm run clean
-```
-
-### Project Structure
-
-```
-src/
-├── index.ts           # Main CLI entry point
-├── mcp-scanner.ts     # MCP config discovery and validation
-├── console-selector.ts # Interactive terminal selection UI
-└── claude-launcher.ts  # Claude Code process management
-```
-
-This project uses TypeScript and is built with Node.js tooling.
+- Development setup and scripts
+- Project architecture and structure
+- Build process and CI/CD information
+- Release management and publishing
+- Code style guidelines and contribution workflow
