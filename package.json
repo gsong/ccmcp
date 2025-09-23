@@ -34,7 +34,9 @@
     "clean": "rm -rf dist",
     "lint": "biome check src",
     "lint:fix": "biome check --write src",
-    "format": "biome format --write src"
+    "format": "biome format --write src",
+    "publish:npm": "pnpm run build && npm publish",
+    "publish:dry-run": "pnpm run build && npm publish --dry-run"
   },
   "packageManager": "pnpm@10.17.0",
   "devDependencies": {
