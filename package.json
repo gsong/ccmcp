@@ -35,8 +35,11 @@
     "lint": "biome check src",
     "lint:fix": "biome check --write src",
     "format": "biome format --write src",
-    "publish:npm": "pnpm run build && pnpm publish --access public",
-    "publish:dry-run": "pnpm run build && pnpm publish --dry-run --access public"
+    "publish:npm": "pnpm run build && git tag \"v$(node -p \"require('./package.json').version\")\" && git push origin \"v$(node -p \"require('./package.json').version\")\" && pnpm publish --access public",
+    "publish:dry-run": "pnpm run build && pnpm publish --dry-run --access public",
+    "release:patch": "git status --porcelain | grep -q . && echo 'Working directory not clean' && exit 1 || (pnpm version patch && git push --follow-tags && pnpm run build && pnpm publish --access public)",
+    "release:minor": "git status --porcelain | grep -q . && echo 'Working directory not clean' && exit 1 || (pnpm version minor && git push --follow-tags && pnpm run build && pnpm publish --access public)",
+    "release:major": "git status --porcelain | grep -q . && echo 'Working directory not clean' && exit 1 || (pnpm version major && git push --follow-tags && pnpm run build && pnpm publish --access public)"
   },
   "packageManager": "pnpm@10.17.0",
   "devDependencies": {
