@@ -9,6 +9,7 @@ This document contains information for developers working on ccmcp.
 - Node.js 18+
 - pnpm (package manager)
 - Claude Code installed and available in PATH
+- Terminal with TTY support for TUI testing
 
 ### Setup
 
@@ -105,8 +106,14 @@ pnpm run publish:npm
 src/
 ├── index.ts           # Main CLI entry point and argument parsing
 ├── mcp-scanner.ts     # MCP config discovery and validation logic
-├── console-selector.ts # Interactive terminal selection UI
-└── claude-launcher.ts  # Claude Code process management and execution
+├── console-selector.ts # Terminal selection logic with TUI/fallback handling
+├── claude-launcher.ts # Claude Code process management and execution
+└── tui/              # React/Ink TUI components
+    ├── index.ts      # TUI component exports
+    ├── ConfigSelector.tsx    # Main TUI config selection interface
+    ├── ConfigPreview.tsx     # Individual config preview component
+    ├── ErrorDisplay.tsx      # Collapsible error details display
+    └── StatusIndicator.tsx   # Config status icons and indicators
 
 scripts/
 ├── generate-release-notes.js # Automated release notes generation
@@ -117,7 +124,8 @@ scripts/
 
 - **CLI Entry (`index.ts`)**: Handles argument parsing, help/version display, config directory resolution, and orchestrates the main flow
 - **MCP Scanner (`mcp-scanner.ts`)**: Discovers and validates MCP configuration files in configurable directories
-- **Console Selector (`console-selector.ts`)**: Provides interactive terminal UI for config selection with directory context
+- **Console Selector (`console-selector.ts`)**: Manages config selection with TTY detection and TUI/readline fallback
+- **TUI Components (`tui/`)**: React/Ink-based terminal user interface with modern navigation and visual feedback
 - **Claude Launcher (`claude-launcher.ts`)**: Manages Claude Code process spawning with selected configs
 
 ## Build Process
@@ -174,6 +182,7 @@ The project uses automated release management:
 - **Biome**: Linting and formatting for TypeScript/JavaScript
 - **Prettier**: Formatting for markdown, JSON, YAML files
 - **TypeScript**: Type checking and compilation
+- **React + Ink**: Terminal user interface framework
 
 ### Configuration Files
 
@@ -202,6 +211,8 @@ Currently, testing is limited to CLI functionality verification. Before contribu
    - Custom directory via `CCMCP_CONFIG_DIR` environment variable
 3. Verify Claude Code launching with various config combinations
 4. Test error handling for non-existent config directories
+5. Test TUI functionality in TTY environments and readline fallback in non-TTY contexts
+6. Test TUI navigation, selection, and error detail expansion
 
 ### Pull Request Process
 

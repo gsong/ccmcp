@@ -8,7 +8,7 @@ Ever have multiple MCP server configs but only want to use specific ones for dif
 
 - 🔍 **Auto-discovering** MCP configurations in configurable directories
 - ✅ **Validating** config files to ensure they're properly formatted
-- 🎯 **Interactive selection** via a clean terminal interface
+- 🎯 **Modern TUI interface** with React/Ink for intuitive config selection
 - 🚀 **Seamless launch** of Claude Code with your chosen configs
 - ⚙️ **Configurable paths** via CLI options or environment variables
 
@@ -16,6 +16,7 @@ Ever have multiple MCP server configs but only want to use specific ones for dif
 
 - **Smart Discovery**: Automatically finds all MCP configs in configurable directories
 - **Config Validation**: Checks configs for proper structure and highlights issues
+- **Interactive TUI**: Modern terminal interface with config previews and error details
 - **Flexible Selection**: Choose individual configs, all configs, or none at all
 - **Configurable Paths**: Specify custom config directories via CLI or environment
 - **Passthrough Support**: Forwards any additional arguments to Claude Code
@@ -92,31 +93,31 @@ CCMCP_CONFIG_DIR=/etc/mcp ccmcp          # Use environment variable
 ### Example Workflow
 
 1. Run `ccmcp` in your terminal
-2. See available MCP configs:
+2. Interactive TUI appears showing available configs with:
+   - ✅ Valid configs with descriptions and previews
+   - ❌ Invalid configs with expandable error details
+   - Navigation with arrow keys, space to select, Enter to confirm
 
-   ```
-   Available MCP configs:
-   ======================
-   1. filesystem - MCP config: filesystem
-   2. github - MCP config: github
-   3. postgres - MCP config: postgres
-
-   Enter config numbers to select (comma-separated, e.g., '1,3,5'):
-   ```
-
-3. Select configs: `1,3` (filesystem + postgres)
+3. Use keyboard navigation to select desired configs
 4. Claude Code launches with only those MCP servers enabled
 
-### Selection Options
+### TUI Navigation
 
-- **Specific configs**: `1,3,5` - Select configs 1, 3, and 5
-- **All configs**: `all` - Select all valid configurations
-- **No configs**: `Enter` (empty) - Launch Claude Code without MCP servers
+- **↑/↓ Arrow keys**: Navigate between configs
+- **Space**: Toggle config selection
+- **Enter**: Confirm selection and launch Claude Code
+- **q** or **Ctrl+C**: Exit without launching
+- **a**: Select all valid configs
+- **c**: Clear all selections
+- **p**: Toggle config preview panel
+- **i**: Toggle invalid configs display (when invalid configs exist)
+- **e**: Expand/collapse error details for invalid configs (when viewing invalid configs)
 
 ## Requirements
 
 - **Claude Code** must be installed and available in your PATH
 - **Node.js** 18+ for running the tool
+- **Terminal with TTY support** for the interactive TUI (falls back to text prompts otherwise)
 - **MCP configs** should be JSON files in your configured directory (default: `~/.claude/mcp-configs/`)
 
 ## Troubleshooting
