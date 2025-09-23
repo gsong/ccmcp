@@ -1,6 +1,5 @@
-import { Box, Text, useInput } from "ink";
+import { Box, Text } from "ink";
 import type React from "react";
-import { useState } from "react";
 import type { McpConfig } from "../mcp-scanner.js";
 
 interface ErrorDisplayProps {
@@ -12,14 +11,6 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   config,
   expanded = false,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(expanded);
-
-  useInput((_input: string, key: { return?: boolean }) => {
-    if (key.return && !config.valid) {
-      setIsExpanded(!isExpanded);
-    }
-  });
-
   if (config.valid) {
     return null;
   }
@@ -29,11 +20,9 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
       <Box>
         <Text color="red">✗ {config.name}</Text>
         <Text dimColor> - {config.description}</Text>
-        {!isExpanded && (
-          <Text dimColor> (Press Enter to see error details)</Text>
-        )}
+        {!expanded && <Text dimColor> (Press 'e' to see error details)</Text>}
       </Box>
-      {isExpanded && config.error && (
+      {expanded && config.error && (
         <Box
           marginTop={1}
           paddingLeft={2}

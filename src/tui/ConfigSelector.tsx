@@ -27,6 +27,9 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showingPreview, setShowingPreview] = useState(false);
   const [showingInvalidConfigs, setShowingInvalidConfigs] = useState(false);
+  const [expandedInvalidConfigs, setExpandedInvalidConfigs] = useState<
+    Set<number>
+  >(new Set());
 
   const currentConfig = validConfigs[currentIndex] || null;
 
@@ -86,6 +89,19 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
         setShowingInvalidConfigs(!showingInvalidConfigs);
       }
 
+      // Toggle error details for invalid configs with 'e' when viewing invalid configs
+      if (input === "e" && showingInvalidConfigs && invalidConfigs.length > 0) {
+        const newExpanded = new Set(expandedInvalidConfigs);
+        if (newExpanded.size === invalidConfigs.length) {
+          // If all are expanded, collapse all
+          newExpanded.clear();
+        } else {
+          // Otherwise, expand all
+          invalidConfigs.forEach((_, index) => newExpanded.add(index));
+        }
+        setExpandedInvalidConfigs(newExpanded);
+      }
+
       // Confirm selection with Enter
       if (key.return) {
         const selectedConfigs = Array.from(selectedIndices)
@@ -101,7 +117,7 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
     (config: McpConfig, index: number) => {
       const isSelected = selectedIndices.has(index);
       const isCurrent = index === currentIndex;
-      const checkbox = isSelected ? "☑" : "☐";
+      const checkbox = isSelected ? "[x]" : "[ ]";
 
       return (
         <Box key={config.path}>
@@ -155,18 +171,6 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
           <Box flexDirection="column" marginTop={1}>
             {validConfigs.map(renderConfigItem)}
           </Box>
-
-          {/* Show invalid configs if requested */}
-          {showingInvalidConfigs && invalidConfigs.length > 0 && (
-            <Box flexDirection="column" marginTop={2}>
-              <Text bold color="red">
-                Invalid Configs ({invalidConfigs.length}):
-              </Text>
-              {invalidConfigs.map((config) => (
-                <ErrorDisplay key={config.path} config={config} />
-              ))}
-            </Box>
-          )}
         </Box>
 
         {/* Right panel - Preview */}
@@ -176,6 +180,23 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
           </Box>
         )}
       </Box>
+
+      {/* Show invalid configs if requested - full width */}
+      {showingInvalidConfigs && invalidConfigs.length > 0 && (
+        <Box flexDirection="column" marginTop={2}>
+          <Text bold color="red">
+            Invalid Configs ({invalidConfigs.length}):
+          </Text>
+          <Text dimColor>Press 'e' to toggle error details</Text>
+          {invalidConfigs.map((config, index) => (
+            <ErrorDisplay
+              key={config.path}
+              config={config}
+              expanded={expandedInvalidConfigs.has(index)}
+            />
+          ))}
+        </Box>
+      )}
 
       {/* Footer - Selection summary */}
       <Box marginTop={1} borderStyle="single" borderColor="gray" padding={1}>
