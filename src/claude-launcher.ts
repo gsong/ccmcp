@@ -1,6 +1,10 @@
 import { execFileSync, spawn } from "node:child_process";
 import type { McpConfig } from "./mcp-scanner.js";
 
+function formatErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
 export interface LaunchOptions {
   selectedConfigs: McpConfig[];
   passthroughArgs: string[];
@@ -33,18 +37,15 @@ export async function launchClaudeCode({
 
       console.log(`Executing: ${claudePath} ${args.join(" ")}`);
 
+      // Build command with proper shell escaping
+      const escapedArgs = args.map((arg) => `"${arg.replace(/"/g, '\\"')}"`);
+      const command = `exec "${claudePath}" ${escapedArgs.join(" ")}`;
+
       // Use Node.js spawn with exec for true process replacement
       // This provides better terminal control and keyboard input handling
-      const proc = spawn(
-        "sh",
-        [
-          "-c",
-          `exec "${claudePath}" ${args.map((arg) => `"${arg.replace(/"/g, '\\"')}"`).join(" ")}`,
-        ],
-        {
-          stdio: "inherit",
-        },
-      );
+      const proc = spawn("sh", ["-c", command], {
+        stdio: "inherit",
+      });
 
       // Exit with the same code as Claude Code
       proc.on("exit", (code, signal) => {
@@ -57,7 +58,7 @@ export async function launchClaudeCode({
 
       // Handle errors
       proc.on("error", (error) => {
-        console.error(`Failed to exec Claude Code: ${error.message}`);
+        console.error(`Error: Failed to exec Claude Code: ${error.message}`);
         process.exit(1);
       });
 
@@ -65,20 +66,19 @@ export async function launchClaudeCode({
       return new Promise<number>(() => {});
     } catch (error: unknown) {
       const errorWithStatus = error as { status?: number; message?: string };
-      if (
+      const isCommandNotFound =
         errorWithStatus.status === 1 ||
-        errorWithStatus.message?.includes("command not found")
-      ) {
+        errorWithStatus.message?.includes("command not found");
+
+      if (isCommandNotFound) {
         console.error(
           "Error: 'claude' command not found. Please ensure Claude Code is installed and in your PATH.",
         );
-        return Promise.resolve(1);
       } else {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        console.error(`Failed to exec Claude Code: ${errorMessage}`);
-        return Promise.resolve(1);
+        const errorMessage = formatErrorMessage(error);
+        console.error(`Error: Failed to exec Claude Code: ${errorMessage}`);
       }
+      return Promise.resolve(1);
     }
   } else {
     // Spawn as child process (original behavior)
@@ -97,7 +97,9 @@ export async function launchClaudeCode({
           );
           resolve(1);
         } else {
-          console.error(`Failed to launch Claude Code: ${error.message}`);
+          console.error(
+            `Error: Failed to launch Claude Code: ${error.message}`,
+          );
           resolve(1);
         }
       });

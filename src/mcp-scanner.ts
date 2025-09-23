@@ -10,6 +10,10 @@ export interface McpConfig {
   error?: string;
 }
 
+function formatErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
 export async function scanMcpConfigs(configDir?: string): Promise<McpConfig[]> {
   const resolvedConfigDir =
     configDir || join(homedir(), ".claude", "mcp-configs");
@@ -46,23 +50,21 @@ export async function scanMcpConfigs(configDir?: string): Promise<McpConfig[]> {
             description: parsed.description || `MCP config: ${name}`,
             valid: isValid,
           };
-        } catch (error) {
+        } catch (error: unknown) {
           return {
             name,
             path: filePath,
             description: `Invalid config: ${name}`,
             valid: false,
-            error: error instanceof Error ? error.message : "Unknown error",
+            error: formatErrorMessage(error),
           };
         }
       }),
     );
 
     return configs.sort((a, b) => a.name.localeCompare(b.name));
-  } catch (error) {
-    console.warn(
-      `Failed to scan MCP configs: ${error instanceof Error ? error.message : "Unknown error"}`,
-    );
+  } catch (error: unknown) {
+    console.warn(`Failed to scan MCP configs: ${formatErrorMessage(error)}`);
     return [];
   }
 }

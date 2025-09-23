@@ -16,6 +16,10 @@ interface CliArgs {
   "config-dir"?: string;
 }
 
+function formatErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
 function showHelp() {
   console.log(`
 ccmcp - Claude Code MCP Selector CLI
@@ -56,8 +60,18 @@ async function runSelector(
   return await launchClaudeCode({ selectedConfigs, passthroughArgs });
 }
 
-async function main() {
-  const { values, positionals } = parseArgs({
+function validateConfigDir(configDir: string): void {
+  if (configDir.trim() === "") {
+    throw new Error("Config directory cannot be empty");
+  }
+  // Check for obviously invalid paths
+  if (configDir.includes("\0")) {
+    throw new Error("Config directory contains invalid characters");
+  }
+}
+
+function parseCliArgs(): { values: CliArgs; positionals: string[] } {
+  const result = parseArgs({
     args: process.argv.slice(2),
     options: {
       help: {
@@ -77,6 +91,17 @@ async function main() {
     strict: false,
   }) as { values: CliArgs; positionals: string[] };
 
+  // Validate config-dir if provided
+  if (result.values["config-dir"]) {
+    validateConfigDir(result.values["config-dir"]);
+  }
+
+  return result;
+}
+
+async function main() {
+  const { values, positionals } = parseCliArgs();
+
   if (values.help) {
     showHelp();
     process.exit(0);
@@ -92,7 +117,7 @@ async function main() {
     const configDir = values["config-dir"] || process.env.CCMCP_CONFIG_DIR;
     const resolvedConfigDir =
       configDir || join(homedir(), ".claude", "mcp-configs");
-    const configs = await scanMcpConfigs(configDir);
+    const configs = await scanMcpConfigs(resolvedConfigDir);
 
     if (configs.length === 0) {
       console.log("No MCP configs found. Launching Claude Code directly...");
@@ -105,10 +130,8 @@ async function main() {
 
     const exitCode = await runSelector(configs, positionals, resolvedConfigDir);
     process.exit(exitCode);
-  } catch (error) {
-    console.error(
-      `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
-    );
+  } catch (error: unknown) {
+    console.error(`Error: ${formatErrorMessage(error)}`);
     process.exit(1);
   }
 }

@@ -1,6 +1,20 @@
 import { createInterface } from "node:readline";
 import type { McpConfig } from "./mcp-scanner.js";
 
+function createSignalCleanup(cleanup: () => void): () => void {
+  const signals: NodeJS.Signals[] = ["SIGINT", "SIGTERM"];
+
+  signals.forEach((signal) => {
+    process.once(signal, cleanup);
+  });
+
+  return () => {
+    signals.forEach((signal) => {
+      process.removeListener(signal, cleanup);
+    });
+  };
+}
+
 export async function selectConfigs(
   configs: McpConfig[],
   configDir: string,
@@ -60,14 +74,22 @@ export async function selectConfigs(
   try {
     const selectedIndexes = trimmed
       .split(",")
-      .map((s) => parseInt(s.trim(), 10) - 1)
+      .map((s) => {
+        const num = parseInt(s.trim(), 10);
+        return Number.isNaN(num) ? -1 : num - 1;
+      })
       .filter((i) => i >= 0 && i < validConfigs.length);
+
+    if (selectedIndexes.length === 0) {
+      console.log("No valid selections found. Launching without configs...");
+      return [];
+    }
 
     const uniqueIndexes = [...new Set(selectedIndexes)];
     return uniqueIndexes
       .map((i) => validConfigs[i])
-      .filter((config) => config !== undefined);
-  } catch (_error) {
+      .filter((config): config is McpConfig => config !== undefined);
+  } catch (_error: unknown) {
     console.log("Invalid input. Launching without configs...");
     return [];
   }
@@ -81,24 +103,20 @@ function readInput(prompt: string): Promise<string> {
       terminal: true,
     });
 
-    // Improve responsiveness by handling terminal signals
     const cleanup = () => {
       rl.close();
     };
 
-    process.once("SIGINT", cleanup);
-    process.once("SIGTERM", cleanup);
+    const removeSignalListeners = createSignalCleanup(cleanup);
 
     rl.question(prompt, (answer) => {
-      process.removeListener("SIGINT", cleanup);
-      process.removeListener("SIGTERM", cleanup);
+      removeSignalListeners();
       rl.close();
       resolve(answer.trim());
     });
 
     rl.on("error", (error) => {
-      process.removeListener("SIGINT", cleanup);
-      process.removeListener("SIGTERM", cleanup);
+      removeSignalListeners();
       rl.close();
       reject(error);
     });
