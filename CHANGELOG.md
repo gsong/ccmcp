@@ -1,8 +1,6 @@
 # Changelog
 
-## [v0.3.0] - 2025-09-23
-
-### Features
+All notable changes to this project will be documented in this file.
 
 ## [v0.3.1] - 2025-09-23
 
@@ -19,6 +17,10 @@
 - Improve CHANGELOG formatting with consistent spacing
 - Update documentation for v0.3.0 TUI features
 
+## [v0.3.0] - 2025-09-23
+
+### Features
+
 - Add Ink TUI for interactive config selection
 - Hide invalid configs option when no invalid configs exist
 - Add collapsible error details in TUI invalid configs view
@@ -34,9 +36,7 @@
 - Improve src/ code quality and error handling
 - Simplify release notes generation output
 
-All notable changes to this project will be documented in this file.
-
-## [v0.2.0] - 2025-09-23
+## [v0.2.0] - 2025-09-22
 
 ### Features
 

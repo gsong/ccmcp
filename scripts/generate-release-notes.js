@@ -191,16 +191,40 @@ function updateChangelog(releaseNotes) {
       "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n";
   }
 
-  // Insert new release notes after the header
+  // Insert new release notes in the correct location
   const lines = changelog.split("\n");
-  const headerEnd = lines.findIndex(
-    (line) => line.trim() && !line.startsWith("#"),
+
+  // Find the first existing version header (## [version])
+  const firstVersionIndex = lines.findIndex(
+    (line) => line.trim().startsWith("## [") && line.includes("]"),
   );
 
-  if (headerEnd > 0) {
-    lines.splice(headerEnd, 0, releaseNotes, "");
+  if (firstVersionIndex > 0) {
+    // Insert before the first existing version
+    lines.splice(firstVersionIndex, 0, releaseNotes, "");
   } else {
-    lines.push("", releaseNotes);
+    // No existing versions - find where to insert after header/description
+    let insertIndex = lines.length;
+
+    // Look for the description line and insert after it
+    const descriptionIndex = lines.findIndex(
+      (line) =>
+        line.trim() && !line.startsWith("#") && !line.trim().match(/^## \[/),
+    );
+
+    if (descriptionIndex > 0) {
+      // Insert after description, ensuring there's proper spacing
+      insertIndex = descriptionIndex + 1;
+      // Add spacing if the next line isn't empty
+      if (lines[insertIndex]?.trim()) {
+        lines.splice(insertIndex, 0, "", releaseNotes, "");
+      } else {
+        lines.splice(insertIndex, 0, releaseNotes, "");
+      }
+    } else {
+      // Fallback: append to end
+      lines.push("", releaseNotes);
+    }
   }
 
   writeFileSync(changelogPath, lines.join("\n"));
