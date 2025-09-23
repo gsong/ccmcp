@@ -29,22 +29,32 @@
   },
   "type": "module",
   "scripts": {
-    "build": "biome check src && tsc",
     "dev": "tsx src/index.ts",
     "clean": "rm -rf dist",
+    "check": "biome check src",
+    "type-check": "tsc --noEmit",
+    "compile": "tsc",
+    "build": "run-s check compile",
     "lint": "biome check src",
     "lint:fix": "biome check --write src",
     "format": "biome format --write src",
-    "publish:npm": "pnpm run build && git tag \"v$(node -p \"require('./package.json').version\")\" && git push origin \"v$(node -p \"require('./package.json').version\")\" && pnpm publish --access public",
-    "publish:dry-run": "pnpm run build && pnpm publish --dry-run --access public",
-    "release:patch": "git status --porcelain | grep -q . && echo 'Working directory not clean' && exit 1 || (pnpm version patch && git push --follow-tags && pnpm run build && pnpm publish --access public)",
-    "release:minor": "git status --porcelain | grep -q . && echo 'Working directory not clean' && exit 1 || (pnpm version minor && git push --follow-tags && pnpm run build && pnpm publish --access public)",
-    "release:major": "git status --porcelain | grep -q . && echo 'Working directory not clean' && exit 1 || (pnpm version major && git push --follow-tags && pnpm run build && pnpm publish --access public)"
+    "git-tag": "git tag \"v$(node -p \"require('./package.json').version\")\"",
+    "git-push-tag": "git push origin \"v$(node -p \"require('./package.json').version\")\"",
+    "npm-publish": "pnpm publish --access public",
+    "npm-publish-dry": "pnpm publish --dry-run --access public",
+    "publish:npm": "run-s build git-tag git-push-tag npm-publish",
+    "publish:dry-run": "run-s build npm-publish-dry",
+    "generate-release-notes": "node scripts/generate-release-notes.js",
+    "clean-release-files": "rm -f .tmp-tag-notes.txt .tmp-release-prompt.txt",
+    "release:patch": "git status --porcelain | grep -q . && echo 'Working directory not clean' && exit 1 || (NEW_VERSION=$(npm version patch --no-git-tag-version) && npm run generate-release-notes $NEW_VERSION && git add . && git commit -m \"chore: release $NEW_VERSION\" && git tag -a \"$NEW_VERSION\" -F .tmp-tag-notes.txt && npm run clean-release-files && git push --follow-tags && npm run build && npm run npm-publish)",
+    "release:minor": "git status --porcelain | grep -q . && echo 'Working directory not clean' && exit 1 || (NEW_VERSION=$(npm version minor --no-git-tag-version) && npm run generate-release-notes $NEW_VERSION && git add . && git commit -m \"chore: release $NEW_VERSION\" && git tag -a \"$NEW_VERSION\" -F .tmp-tag-notes.txt && npm run clean-release-files && git push --follow-tags && npm run build && npm run npm-publish)",
+    "release:major": "git status --porcelain | grep -q . && echo 'Working directory not clean' && exit 1 || (NEW_VERSION=$(npm version major --no-git-tag-version) && npm run generate-release-notes $NEW_VERSION && git add . && git commit -m \"chore: release $NEW_VERSION\" && git tag -a \"$NEW_VERSION\" -F .tmp-tag-notes.txt && npm run clean-release-files && git push --follow-tags && npm run build && npm run npm-publish)"
   },
   "packageManager": "pnpm@10.17.0",
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
     "@types/node": "^24.5.2",
+    "npm-run-all2": "^8.0.4",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   }
