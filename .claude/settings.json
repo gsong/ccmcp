@@ -1,6 +1,6 @@
 {
   "permissions": {
-    "allow": ["Bash(bun:*)", "Bash(./ccmcp:*)", "WebSearch"],
+    "allow": ["Bash(./ccmcp:*)", "Bash(biome:*)", "Bash(bun:*)", "WebSearch"],
     "deny": [],
     "ask": []
   }
