@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { launchClaudeCode } from "./claude-launcher.js";
 import { selectConfigs } from "./console-selector.js";
@@ -31,7 +34,11 @@ Any additional arguments are passed through to Claude Code.
 }
 
 function showVersion() {
-  console.log("ccmcp v0.1.0");
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const packageJson = JSON.parse(
+    readFileSync(join(__dirname, "../package.json"), "utf8"),
+  );
+  console.log(`ccmcp v${packageJson.version}`);
 }
 
 async function runSelector(
