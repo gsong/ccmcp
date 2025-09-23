@@ -1,6 +1,6 @@
 {
   "name": "@gsong/ccmcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Claude Code MCP Selector - Intelligently discover, validate, and select MCP server configurations for Claude Code",
   "license": "MIT",
   "author": "George Song",
