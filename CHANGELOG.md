@@ -3,6 +3,7 @@
 ## [v0.3.0] - 2025-09-23
 
 ### Features
+
 - Add Ink TUI for interactive config selection
 - Hide invalid configs option when no invalid configs exist
 - Add collapsible error details in TUI invalid configs view
@@ -10,9 +11,11 @@
 - Support configurable MCP config directory location
 
 ### Bug Fixes
+
 - Use unique cache keys per Node.js version in CI workflow
 
 ### Improvements
+
 - Improve src/ code quality and error handling
 - Simplify release notes generation output
 
