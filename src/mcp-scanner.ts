@@ -10,23 +10,24 @@ export interface McpConfig {
   error?: string;
 }
 
-export async function scanMcpConfigs(): Promise<McpConfig[]> {
-  const configDir = join(homedir(), ".claude", "mcp-configs");
+export async function scanMcpConfigs(configDir?: string): Promise<McpConfig[]> {
+  const resolvedConfigDir =
+    configDir || join(homedir(), ".claude", "mcp-configs");
 
   try {
-    await stat(configDir);
+    await stat(resolvedConfigDir);
   } catch {
     return [];
   }
 
   try {
-    const files = await readdir(configDir);
+    const files = await readdir(resolvedConfigDir);
     const jsonFiles = files.filter((file) => file.endsWith(".json"));
 
     // Process files in parallel for better performance
     const configs = await Promise.all(
       jsonFiles.map(async (file): Promise<McpConfig> => {
-        const filePath = join(configDir, file);
+        const filePath = join(resolvedConfigDir, file);
         const name = file.replace(".json", "");
 
         try {

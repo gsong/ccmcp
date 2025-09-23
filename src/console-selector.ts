@@ -3,9 +3,12 @@ import type { McpConfig } from "./mcp-scanner.js";
 
 export async function selectConfigs(
   configs: McpConfig[],
+  configDir: string,
 ): Promise<McpConfig[]> {
   if (configs.length === 0) {
-    console.log("No MCP configs found in ~/.claude/mcp-configs/");
+    console.log(
+      `No MCP configs found in ${configDir || "~/.claude/mcp-configs/"}`,
+    );
     return [];
   }
 
