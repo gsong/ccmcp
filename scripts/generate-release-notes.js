@@ -204,6 +204,19 @@ function updateChangelog(releaseNotes) {
   }
 
   writeFileSync(changelogPath, lines.join("\n"));
+
+  // Format the changelog with prettier
+  try {
+    execSync(`npx prettier --write "${changelogPath}"`, {
+      cwd: projectRoot,
+      stdio: "inherit",
+    });
+  } catch (error) {
+    console.warn(
+      "Warning: Failed to format CHANGELOG.md with prettier:",
+      error.message,
+    );
+  }
 }
 
 /**
