@@ -6,16 +6,18 @@ A CLI tool that intelligently discovers, validates, and selects MCP (Model Conte
 
 Ever have multiple MCP server configs but only want to use specific ones for different tasks? This tool solves that by:
 
-- 🔍 **Auto-discovering** MCP configurations in `~/.claude/mcp-configs/`
+- 🔍 **Auto-discovering** MCP configurations in configurable directories
 - ✅ **Validating** config files to ensure they're properly formatted
 - 🎯 **Interactive selection** via a clean terminal interface
 - 🚀 **Seamless launch** of Claude Code with your chosen configs
+- ⚙️ **Configurable paths** via CLI options or environment variables
 
 ## Features
 
-- **Smart Discovery**: Automatically finds all MCP configs in your Claude directory
+- **Smart Discovery**: Automatically finds all MCP configs in configurable directories
 - **Config Validation**: Checks configs for proper structure and highlights issues
 - **Flexible Selection**: Choose individual configs, all configs, or none at all
+- **Configurable Paths**: Specify custom config directories via CLI or environment
 - **Passthrough Support**: Forwards any additional arguments to Claude Code
 - **Error Handling**: Graceful handling of invalid configs and missing dependencies
 - **Process Replacement**: Replaces itself with Claude Code for optimal performance
@@ -60,9 +62,31 @@ pnpm run build
 # Scan configs and launch interactive selector
 ccmcp
 
+# Specify custom config directory
+ccmcp --config-dir /path/to/configs
+ccmcp -c ~/my-mcp-configs
+
+# Use environment variable for config directory
+CCMCP_CONFIG_DIR=/path/to/configs ccmcp
+
 # Launch with additional Claude Code options
 ccmcp --help
 ccmcp --verbose
+```
+
+### Configuration Options
+
+The tool supports multiple ways to specify the MCP config directory:
+
+1. **CLI Option** (highest priority): `--config-dir` or `-c`
+2. **Environment Variable**: `CCMCP_CONFIG_DIR`
+3. **Default**: `~/.claude/mcp-configs/` (standard Claude location)
+
+```bash
+# Examples
+ccmcp --config-dir ./project-configs     # Use local directory
+ccmcp -c ~/work/mcp-configs              # Use home subdirectory
+CCMCP_CONFIG_DIR=/etc/mcp ccmcp          # Use environment variable
 ```
 
 ### Example Workflow
@@ -93,7 +117,7 @@ ccmcp --verbose
 
 - **Claude Code** must be installed and available in your PATH
 - **Node.js** 18+ for running the tool
-- **MCP configs** should be stored in `~/.claude/mcp-configs/` (standard Claude location)
+- **MCP configs** should be JSON files in your configured directory (default: `~/.claude/mcp-configs/`)
 
 ## Troubleshooting
 
@@ -108,11 +132,19 @@ which claude
 
 ### "No MCP configs found"
 
-Check that you have MCP configs in the correct location:
+Check that you have MCP configs in the correct location. The tool will show which directory it's searching:
 
 ```bash
+# Check default location
 ls ~/.claude/mcp-configs/
 # Should show *.json files
+
+# Check custom location if using --config-dir
+ls /your/custom/config/path/
+# Should show *.json files
+
+# Verify which directory is being used
+ccmcp --config-dir /path/to/check
 ```
 
 ### Invalid config errors

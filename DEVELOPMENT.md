@@ -30,6 +30,10 @@ This document contains information for developers working on ccmcp.
 # Run CLI directly from TypeScript source
 pnpm run dev
 
+# Run with custom config directory during development
+pnpm run dev -- --config-dir ./test-configs
+pnpm run dev -- -c /path/to/configs
+
 # Build for production
 pnpm run build
 
@@ -111,9 +115,9 @@ scripts/
 
 ### Key Components
 
-- **CLI Entry (`index.ts`)**: Handles argument parsing, help/version display, and orchestrates the main flow
-- **MCP Scanner (`mcp-scanner.ts`)**: Discovers and validates MCP configuration files in `~/.claude/mcp-configs/`
-- **Console Selector (`console-selector.ts`)**: Provides interactive terminal UI for config selection
+- **CLI Entry (`index.ts`)**: Handles argument parsing, help/version display, config directory resolution, and orchestrates the main flow
+- **MCP Scanner (`mcp-scanner.ts`)**: Discovers and validates MCP configuration files in configurable directories
+- **Console Selector (`console-selector.ts`)**: Provides interactive terminal UI for config selection with directory context
 - **Claude Launcher (`claude-launcher.ts`)**: Manages Claude Code process spawning with selected configs
 
 ## Build Process
@@ -192,8 +196,12 @@ The project uses automated release management:
 Currently, testing is limited to CLI functionality verification. Before contributing:
 
 1. Ensure your changes don't break `--help` and `--version` commands
-2. Test MCP config discovery and selection manually
+2. Test MCP config discovery and selection manually with different directory options:
+   - Default directory (`~/.claude/mcp-configs/`)
+   - Custom directory via `--config-dir`
+   - Custom directory via `CCMCP_CONFIG_DIR` environment variable
 3. Verify Claude Code launching with various config combinations
+4. Test error handling for non-existent config directories
 
 ### Pull Request Process
 
