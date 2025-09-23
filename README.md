@@ -2,6 +2,8 @@
 
 A CLI tool that intelligently discovers, validates, and selects MCP (Model Context Protocol) server configurations for Claude Code.
 
+![CCMCP Demo](./assets/ccmcp.gif)
+
 ## What it does
 
 Ever have multiple MCP server configs but only want to use specific ones for different tasks? This tool solves that by:
