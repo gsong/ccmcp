@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.4.0] - 2025-09-24
+
+### Features
+
+- Improve UI display for MCP configurations
+- Add support for optional type field in MCP server configuration
+- Implement comprehensive MCP configuration schema validation
+- Add demo GIF to README
+- Add concurrency control to CI workflow to cancel previous runs
+
+### Bug Fixes
+
+- Remove duplicate filename display in config preview header
+- Resolve React key warning in ConfigPreview
+- Improve test command to handle multiple test files
+- Correct changelog generation and structure
+
+### Improvements
+
+- Remove StatusIndicator component completely
+- Enable stricter TypeScript settings
+- Extract shared formatErrorMessage utility
+- Add comprehensive tests for formatErrorMessage utility
+- Add test step to GitHub Actions workflow
+
 ## [v0.3.1] - 2025-09-23
 
 ### Features
