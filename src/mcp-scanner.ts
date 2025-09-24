@@ -1,6 +1,10 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import {
+  formatValidationErrors,
+  validateMcpConfig,
+} from "./schemas/mcp-config.js";
 
 export interface McpConfig {
   name: string;
@@ -38,25 +42,38 @@ export async function scanMcpConfigs(configDir?: string): Promise<McpConfig[]> {
           const content = await readFile(filePath, "utf-8");
           const parsed = JSON.parse(content);
 
-          // Basic validation for MCP config structure
-          const isValid =
-            typeof parsed === "object" &&
-            parsed !== null &&
-            (parsed.mcpServers || parsed.mcp_servers);
+          // Schema-based validation using Zod
+          const validationResult = validateMcpConfig(parsed);
 
-          return {
-            name,
-            path: filePath,
-            description: parsed.description || `MCP config: ${name}`,
-            valid: isValid,
-          };
+          if (validationResult.success) {
+            return {
+              name,
+              path: filePath,
+              description: parsed.description || `MCP config: ${name}`,
+              valid: true,
+            };
+          } else {
+            return {
+              name,
+              path: filePath,
+              description: `Invalid config: ${name}`,
+              valid: false,
+              error: formatValidationErrors(validationResult.errors || []),
+            };
+          }
         } catch (error: unknown) {
+          // Handle JSON parse errors separately from validation errors
+          const errorMessage =
+            error instanceof SyntaxError
+              ? `JSON syntax error: ${error.message}`
+              : formatErrorMessage(error);
+
           return {
             name,
             path: filePath,
             description: `Invalid config: ${name}`,
             valid: false,
-            error: formatErrorMessage(error),
+            error: errorMessage,
           };
         }
       }),
