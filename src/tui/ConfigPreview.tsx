@@ -67,8 +67,9 @@ export const ConfigPreview: React.FC<ConfigPreviewProps> = ({
       flexDirection="column"
     >
       <Box marginBottom={1}>
-        <Text bold>{config.name}</Text>
-        <Text color="blue"> - {config.description}</Text>
+        <Text bold color="blue">
+          {config.description}
+        </Text>
       </Box>
 
       {loading ? (

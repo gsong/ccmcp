@@ -74,7 +74,9 @@ ccmcp --resume
 
 - Malformed JSON
 - Missing `mcpServers` field
-- Invalid server config (missing `type`, `command`, or `url`)
+- Invalid server config (missing `command` for STDIO servers, or `url` for HTTP/SSE servers)
+
+Note: The `type` field is optional for server configs and defaults to "stdio" for backward compatibility.
 
 ## Contributing
 

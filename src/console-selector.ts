@@ -67,7 +67,7 @@ async function selectConfigsReadline(
 
   // Show valid configs
   validConfigs.forEach((config, index) => {
-    console.log(`${index + 1}. ${config.name} - ${config.description}`);
+    console.log(`${index + 1}. ${config.description}`);
   });
 
   // Show invalid configs

@@ -111,16 +111,17 @@ src/
 ├── mcp-scanner.ts     # MCP config discovery and validation logic
 ├── console-selector.ts # Terminal selection logic with TUI/fallback handling
 ├── claude-launcher.ts # Claude Code process management and execution
+├── utils.ts          # Shared utility functions for error formatting
 ├── schemas/          # Configuration validation schemas
 │   └── mcp-config.ts # Zod schema for MCP configuration validation
 ├── __tests__/        # Test suite
-│   └── mcp-config-schema.test.ts # Schema validation tests
+│   ├── mcp-config-schema.test.ts # Schema validation tests
+│   └── utils.test.ts # Utility function tests
 └── tui/              # React/Ink TUI components
     ├── index.ts      # TUI component exports
     ├── ConfigSelector.tsx    # Main TUI config selection interface
     ├── ConfigPreview.tsx     # Individual config preview component
-    ├── ErrorDisplay.tsx      # Collapsible error details display
-    └── StatusIndicator.tsx   # Config status icons and indicators
+    └── ErrorDisplay.tsx      # Collapsible error details display
 
 scripts/
 ├── generate-release-notes.js # Automated release notes generation
@@ -131,7 +132,7 @@ scripts/
 
 - **CLI Entry (`index.ts`)**: Handles argument parsing, help/version display, config directory resolution, and orchestrates the main flow
 - **MCP Scanner (`mcp-scanner.ts`)**: Discovers and validates MCP configuration files using comprehensive schema validation
-- **Schema Validation (`schemas/mcp-config.ts`)**: Zod-based schemas for validating MCP config structure with detailed error messages
+- **Schema Validation (`schemas/mcp-config.ts`)**: Zod-based schemas for validating MCP config structure with detailed error messages, supporting both modern and legacy formats (type field optional, defaults to "stdio")
 - **Test Suite (`__tests__/`)**: Comprehensive unit tests for schema validation covering valid/invalid configurations
 - **Console Selector (`console-selector.ts`)**: Manages config selection with TTY detection and TUI/readline fallback
 - **TUI Components (`tui/`)**: React/Ink-based terminal user interface with modern navigation and visual feedback
@@ -223,10 +224,11 @@ The project includes both unit tests and manual CLI testing. Before contributing
 #### Unit Tests
 
 1. Run the test suite: `pnpm test`
-2. Tests cover schema validation for:
-   - Valid STDIO, HTTP, and SSE server configurations
+2. Tests cover:
+   - Schema validation for valid STDIO, HTTP, and SSE server configurations
    - Invalid configurations with proper error messages
    - Edge cases and malformed JSON
+   - Utility functions for error formatting
 
 #### Manual Testing
 
