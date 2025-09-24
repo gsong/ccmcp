@@ -9,6 +9,7 @@ import { launchClaudeCode } from "./claude-launcher.js";
 import { selectConfigs } from "./console-selector.js";
 import type { McpConfig } from "./mcp-scanner.js";
 import { scanMcpConfigs } from "./mcp-scanner.js";
+import { formatErrorMessage } from "./utils.js";
 
 interface CliArgs {
   help?: boolean;
@@ -16,11 +17,7 @@ interface CliArgs {
   "config-dir"?: string;
 }
 
-function formatErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Unknown error";
-}
-
-function showHelp() {
+function showHelp(): void {
   console.log(`
 ccmcp - Claude Code MCP Selector CLI
 
@@ -43,7 +40,7 @@ Any additional arguments are passed through to Claude Code.
 `);
 }
 
-function showVersion() {
+function showVersion(): void {
   const __dirname = dirname(fileURLToPath(import.meta.url));
   const packageJson = JSON.parse(
     readFileSync(join(__dirname, "../package.json"), "utf8"),
@@ -72,26 +69,26 @@ function validateConfigDir(configDir: string): void {
 
 function parseCliArgs(): { values: CliArgs; positionals: string[] } {
   const rawArgs = process.argv.slice(2);
+  const ccmcpFlags = new Set([
+    "-h",
+    "--help",
+    "-v",
+    "--version",
+    "-c",
+    "--config-dir",
+  ]);
 
-  // Manually separate ccmcp's own flags from passthrough args
   const ccmcpArgs: string[] = [];
   const passthroughArgs: string[] = [];
 
   for (let i = 0; i < rawArgs.length; i++) {
     const arg = rawArgs[i];
+    if (!arg) continue;
 
-    // Check if this is a ccmcp flag
-    if (
-      arg === "-h" ||
-      arg === "--help" ||
-      arg === "-v" ||
-      arg === "--version" ||
-      arg === "-c" ||
-      arg === "--config-dir"
-    ) {
+    if (ccmcpFlags.has(arg)) {
       ccmcpArgs.push(arg);
 
-      // If it's config-dir, also grab the next argument (the value)
+      // Handle config-dir value
       if ((arg === "-c" || arg === "--config-dir") && i + 1 < rawArgs.length) {
         i++;
         const nextArg = rawArgs[i];
@@ -100,35 +97,21 @@ function parseCliArgs(): { values: CliArgs; positionals: string[] } {
         }
       }
     } else {
-      // Everything else is a passthrough argument
-      if (arg) {
-        passthroughArgs.push(arg);
-      }
+      passthroughArgs.push(arg);
     }
   }
 
-  // Parse only ccmcp's own arguments
   const result = parseArgs({
     args: ccmcpArgs,
     options: {
-      help: {
-        type: "boolean",
-        short: "h",
-      },
-      version: {
-        type: "boolean",
-        short: "v",
-      },
-      "config-dir": {
-        type: "string",
-        short: "c",
-      },
+      help: { type: "boolean", short: "h" },
+      version: { type: "boolean", short: "v" },
+      "config-dir": { type: "string", short: "c" },
     },
     allowPositionals: false,
     strict: true,
   }) as { values: CliArgs; positionals: string[] };
 
-  // Validate config-dir if provided
   if (result.values["config-dir"]) {
     validateConfigDir(result.values["config-dir"]);
   }
@@ -136,7 +119,7 @@ function parseCliArgs(): { values: CliArgs; positionals: string[] } {
   return { values: result.values, positionals: passthroughArgs };
 }
 
-async function main() {
+async function main(): Promise<void> {
   const { values, positionals } = parseCliArgs();
 
   if (values.help) {

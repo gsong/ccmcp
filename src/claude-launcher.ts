@@ -1,9 +1,6 @@
 import { execFileSync, spawn } from "node:child_process";
 import type { McpConfig } from "./mcp-scanner.js";
-
-function formatErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Unknown error";
-}
+import { formatErrorMessage } from "./utils.js";
 
 export interface LaunchOptions {
   selectedConfigs: McpConfig[];
@@ -42,8 +39,11 @@ export async function launchClaudeCode({
       process.stderr.write("");
 
       // Build command with proper shell escaping
-      const escapedArgs = args.map((arg) => `"${arg.replace(/"/g, '\\"')}"`);
-      const command = `exec "${claudePath}" ${escapedArgs.join(" ")}`;
+      const escapeShellArg = (arg: string): string => {
+        return `"${arg.replace(/[\\"$`]/g, "\\$&")}"`;
+      };
+      const escapedArgs = args.map(escapeShellArg);
+      const command = `exec "${claudePath.replace(/[\\"$`]/g, "\\$&")}" ${escapedArgs.join(" ")}`;
 
       // Use Node.js spawn with exec for true process replacement
       // This provides better terminal control and keyboard input handling

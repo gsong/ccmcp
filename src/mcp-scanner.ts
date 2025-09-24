@@ -5,6 +5,7 @@ import {
   formatValidationErrors,
   validateMcpConfig,
 } from "./schemas/mcp-config.js";
+import { formatErrorMessage } from "./utils.js";
 
 export interface McpConfig {
   name: string;
@@ -12,10 +13,6 @@ export interface McpConfig {
   description?: string;
   valid: boolean;
   error?: string;
-}
-
-function formatErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Unknown error";
 }
 
 export async function scanMcpConfigs(configDir?: string): Promise<McpConfig[]> {
