@@ -36,7 +36,7 @@
     "format": "biome format --write src scripts",
     "format:other": "prettier --write '**/*.{md,json,yaml,yml}'",
     "type-check": "tsc --noEmit",
-    "test": "node --test --import=tsx/esm src/__tests__/**/*.test.ts",
+    "test": "find src/__tests__ -name '*.test.ts' -type f | xargs node --test --import=tsx/esm",
     "fix": "run-s lint:fix format format:other type-check",
     "compile": "tsc",
     "build": "run-s lint type-check compile",
