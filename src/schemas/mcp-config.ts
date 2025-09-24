@@ -8,6 +8,13 @@ const StdioServerSchema = z.object({
   env: z.record(z.string(), z.string()).optional(),
 });
 
+// Legacy STDIO server schema (without explicit type, defaults to stdio)
+const LegacyStdioServerSchema = z.object({
+  command: z.string().min(1, "Command cannot be empty"),
+  args: z.array(z.string()).default([]),
+  env: z.record(z.string(), z.string()).optional(),
+});
+
 // HTTP transport server schema
 const HttpServerSchema = z.object({
   type: z.literal("http"),
@@ -24,12 +31,68 @@ const SseServerSchema = z.object({
   env: z.record(z.string(), z.string()).optional(),
 });
 
-// Union of all server types
-const ServerSchema = z.discriminatedUnion("type", [
-  StdioServerSchema,
-  HttpServerSchema,
-  SseServerSchema,
-]);
+// Base server schema that handles both explicit and legacy formats
+const BaseServerSchema = z.object({
+  type: z.enum(["stdio", "http", "sse"]).optional(),
+  command: z.string().optional(),
+  args: z.array(z.string()).default([]).optional(),
+  env: z.record(z.string(), z.string()).optional(),
+  url: z.string().optional(),
+  headers: z.record(z.string(), z.string()).optional(),
+});
+
+// Server schema with conditional validation and transformation
+const ServerSchema = BaseServerSchema.superRefine((data, ctx) => {
+  // If no type is specified, assume stdio (legacy format)
+  const serverType = data.type || "stdio";
+
+  if (serverType === "stdio") {
+    // Validate stdio server requirements
+    if (data.command === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.invalid_type,
+        expected: "string",
+        received: "undefined",
+        path: ["command"],
+        message: "Invalid input: expected string, received undefined",
+      });
+    } else if (data.command === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.too_small,
+        minimum: 1,
+        origin: "string",
+        inclusive: true,
+        path: ["command"],
+        message: "Command cannot be empty",
+      });
+    }
+  } else if (serverType === "http" || serverType === "sse") {
+    // Validate HTTP/SSE server requirements
+    if (!data.url) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.invalid_type,
+        expected: "string",
+        received: "undefined",
+        path: ["url"],
+        message: "Invalid input: expected string, received undefined",
+      });
+    } else if (!z.string().url().safeParse(data.url).success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["url"],
+        message: "Must be a valid URL",
+      });
+    }
+  }
+}).transform((data) => {
+  // Transform to explicit format, ensuring type is always present
+  const serverType = data.type || "stdio";
+  return {
+    ...data,
+    type: serverType,
+    args: data.args || [],
+  };
+});
 
 // Note: Using inline schema definition instead of separate variable to avoid unused variable warning
 
@@ -43,6 +106,7 @@ export const McpConfigSchema = z.object({
 export type McpConfigType = z.infer<typeof McpConfigSchema>;
 export type ServerConfig = z.infer<typeof ServerSchema>;
 export type StdioServerConfig = z.infer<typeof StdioServerSchema>;
+export type LegacyStdioServerConfig = z.infer<typeof LegacyStdioServerSchema>;
 export type HttpServerConfig = z.infer<typeof HttpServerSchema>;
 export type SseServerConfig = z.infer<typeof SseServerSchema>;
 

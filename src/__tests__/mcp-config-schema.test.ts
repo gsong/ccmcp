@@ -78,6 +78,76 @@ describe("MCP Configuration Schema Validation", () => {
       assert.strictEqual(result.success, true);
       assert.ok(result.data);
     });
+
+    it("should validate legacy STDIO server without type field", () => {
+      const config = {
+        mcpServers: {
+          legacyServer: {
+            command: "node",
+            args: ["server.js"],
+          },
+        },
+      };
+
+      const result = validateMcpConfig(config);
+      assert.strictEqual(result.success, true);
+      assert.ok(result.data);
+      assert.strictEqual(result.data.mcpServers?.legacyServer?.type, "stdio");
+    });
+
+    it("should validate legacy STDIO server with environment variables", () => {
+      const config = {
+        mcpServers: {
+          legacyServerWithEnv: {
+            command: "python",
+            args: ["-m", "server"],
+            env: {
+              PYTHONPATH: "/custom/path",
+              DEBUG: "true",
+            },
+          },
+        },
+      };
+
+      const result = validateMcpConfig(config);
+      assert.strictEqual(result.success, true);
+      assert.ok(result.data);
+      assert.strictEqual(
+        result.data.mcpServers?.legacyServerWithEnv?.type,
+        "stdio",
+      );
+      assert.deepStrictEqual(result.data.mcpServers?.legacyServerWithEnv?.env, {
+        PYTHONPATH: "/custom/path",
+        DEBUG: "true",
+      });
+    });
+
+    it("should validate mixed legacy and explicit server configurations", () => {
+      const config = {
+        mcpServers: {
+          legacyServer: {
+            command: "node",
+            args: ["legacy-server.js"],
+          },
+          modernServer: {
+            type: "stdio",
+            command: "python",
+            args: ["-m", "modern_server"],
+          },
+          httpServer: {
+            type: "http",
+            url: "https://api.example.com/mcp",
+          },
+        },
+      };
+
+      const result = validateMcpConfig(config);
+      assert.strictEqual(result.success, true);
+      assert.ok(result.data);
+      assert.strictEqual(result.data.mcpServers?.legacyServer?.type, "stdio");
+      assert.strictEqual(result.data.mcpServers?.modernServer?.type, "stdio");
+      assert.strictEqual(result.data.mcpServers?.httpServer?.type, "http");
+    });
   });
 
   describe("Invalid configurations", () => {
@@ -189,6 +259,47 @@ describe("MCP Configuration Schema Validation", () => {
       const result = validateMcpConfig(config);
       assert.strictEqual(result.success, false);
       assert.ok(result.errors);
+    });
+
+    it("should reject legacy STDIO server with empty command", () => {
+      const config = {
+        mcpServers: {
+          invalid: {
+            command: "",
+            args: [],
+          },
+        },
+      };
+
+      const result = validateMcpConfig(config);
+      assert.strictEqual(result.success, false);
+      assert.ok(result.errors);
+      assert.ok(
+        result.errors.some((error) =>
+          error.message.includes("Command cannot be empty"),
+        ),
+      );
+    });
+
+    it("should reject legacy STDIO server without command", () => {
+      const config = {
+        mcpServers: {
+          invalid: {
+            args: ["--flag"],
+          },
+        },
+      };
+
+      const result = validateMcpConfig(config);
+      assert.strictEqual(result.success, false);
+      assert.ok(result.errors);
+      assert.ok(
+        result.errors.some(
+          (error) =>
+            error.path.includes("command") ||
+            error.message.includes("expected string"),
+        ),
+      );
     });
 
     it("should reject non-object configuration", () => {
