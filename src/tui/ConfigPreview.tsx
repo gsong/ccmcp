@@ -79,7 +79,7 @@ export const ConfigPreview: React.FC<ConfigPreviewProps> = ({
             .split("\n")
             .slice(0, height - 3)
             .map((line, index) => (
-              <Text key={`${index}-${line.slice(0, 20)}`} wrap="truncate">
+              <Text key={`line-${index}-${line.slice(0, 10)}`} wrap="truncate">
                 {line.length > width - 4
                   ? `${line.slice(0, width - 7)}...`
                   : line}
