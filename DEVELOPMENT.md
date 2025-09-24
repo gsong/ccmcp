@@ -119,8 +119,7 @@ src/
     ├── index.ts      # TUI component exports
     ├── ConfigSelector.tsx    # Main TUI config selection interface
     ├── ConfigPreview.tsx     # Individual config preview component
-    ├── ErrorDisplay.tsx      # Collapsible error details display
-    └── StatusIndicator.tsx   # Config status icons and indicators
+    └── ErrorDisplay.tsx      # Collapsible error details display
 
 scripts/
 ├── generate-release-notes.js # Automated release notes generation
