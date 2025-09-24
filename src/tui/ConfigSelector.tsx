@@ -4,7 +4,6 @@ import { useCallback, useState } from "react";
 import type { McpConfig } from "../mcp-scanner.js";
 import { ConfigPreview } from "./ConfigPreview.js";
 import { ErrorDisplay } from "./ErrorDisplay.js";
-import { StatusIndicator } from "./StatusIndicator.js";
 
 interface ConfigSelectorProps {
   configs: McpConfig[];
@@ -124,8 +123,7 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
       return (
         <Box key={config.path}>
           <Text inverse={isCurrent} bold={isCurrent}>
-            {checkbox} <StatusIndicator valid={config.valid} /> {config.name} -{" "}
-            {config.description}
+            {checkbox} {config.description}
           </Text>
         </Box>
       );

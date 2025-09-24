@@ -2,10 +2,11 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import {
+  extractServers,
   formatValidationErrors,
   validateMcpConfig,
 } from "./schemas/mcp-config.js";
-import { formatErrorMessage } from "./utils.js";
+import { formatConfigDisplayName, formatErrorMessage } from "./utils.js";
 
 export interface McpConfig {
   name: string;
@@ -42,11 +43,18 @@ export async function scanMcpConfigs(configDir?: string): Promise<McpConfig[]> {
           // Schema-based validation using Zod
           const validationResult = validateMcpConfig(parsed);
 
-          if (validationResult.success) {
+          if (validationResult.success && validationResult.data) {
+            // Extract server names from the validated config
+            const servers = extractServers(validationResult.data);
+            const serverNames = Object.keys(servers);
+
+            // Generate display name using new format
+            const displayName = formatConfigDisplayName(file, serverNames);
+
             return {
               name,
               path: filePath,
-              description: parsed.description || `MCP config: ${name}`,
+              description: displayName,
               valid: true,
             };
           } else {
