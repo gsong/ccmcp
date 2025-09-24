@@ -60,6 +60,9 @@ pnpm run format:other
 # Run type checking
 pnpm run type-check
 
+# Run tests
+pnpm test
+
 # Run all fixes and checks
 pnpm run fix
 ```
@@ -108,6 +111,10 @@ src/
 ├── mcp-scanner.ts     # MCP config discovery and validation logic
 ├── console-selector.ts # Terminal selection logic with TUI/fallback handling
 ├── claude-launcher.ts # Claude Code process management and execution
+├── schemas/          # Configuration validation schemas
+│   └── mcp-config.ts # Zod schema for MCP configuration validation
+├── __tests__/        # Test suite
+│   └── mcp-config-schema.test.ts # Schema validation tests
 └── tui/              # React/Ink TUI components
     ├── index.ts      # TUI component exports
     ├── ConfigSelector.tsx    # Main TUI config selection interface
@@ -123,7 +130,9 @@ scripts/
 ### Key Components
 
 - **CLI Entry (`index.ts`)**: Handles argument parsing, help/version display, config directory resolution, and orchestrates the main flow
-- **MCP Scanner (`mcp-scanner.ts`)**: Discovers and validates MCP configuration files in configurable directories
+- **MCP Scanner (`mcp-scanner.ts`)**: Discovers and validates MCP configuration files using comprehensive schema validation
+- **Schema Validation (`schemas/mcp-config.ts`)**: Zod-based schemas for validating MCP config structure with detailed error messages
+- **Test Suite (`__tests__/`)**: Comprehensive unit tests for schema validation covering valid/invalid configurations
 - **Console Selector (`console-selector.ts`)**: Manages config selection with TTY detection and TUI/readline fallback
 - **TUI Components (`tui/`)**: React/Ink-based terminal user interface with modern navigation and visual feedback
 - **Claude Launcher (`claude-launcher.ts`)**: Manages Claude Code process spawning with selected configs
@@ -134,8 +143,9 @@ The build process uses TypeScript compilation:
 
 1. **Type Checking**: Validates TypeScript types without emitting files
 2. **Linting**: Uses Biome for code quality and style checking
-3. **Compilation**: Transpiles TypeScript to JavaScript in `dist/` directory
-4. **Testing**: CLI functionality testing with `--help` and `--version`
+3. **Testing**: Schema validation unit tests using Node.js built-in test runner
+4. **Compilation**: Transpiles TypeScript to JavaScript in `dist/` directory
+5. **CLI Testing**: CLI functionality testing with `--help` and `--version`
 
 ## CI/CD Pipeline
 
@@ -152,8 +162,9 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs on:
 2. Run linting and formatting checks
 3. Check Prettier formatting for markdown/JSON/YAML files
 4. Run TypeScript type checking
-5. Build the project
-6. Test CLI functionality (`--help`, `--version`)
+5. Run unit tests for schema validation
+6. Build the project
+7. Test CLI functionality (`--help`, `--version`)
 
 ### Caching Strategy
 
@@ -182,6 +193,11 @@ The project uses automated release management:
 - **Biome**: Linting and formatting for TypeScript/JavaScript
 - **Prettier**: Formatting for markdown, JSON, YAML files
 - **TypeScript**: Type checking and compilation
+- **Node.js Test Runner**: Built-in test framework for unit testing
+
+### Libraries and Frameworks
+
+- **Zod**: Runtime schema validation with TypeScript integration
 - **React + Ink**: Terminal user interface framework
 
 ### Configuration Files
@@ -202,7 +218,17 @@ The project uses automated release management:
 
 ### Testing
 
-Currently, testing is limited to CLI functionality verification. Before contributing:
+The project includes both unit tests and manual CLI testing. Before contributing:
+
+#### Unit Tests
+
+1. Run the test suite: `pnpm test`
+2. Tests cover schema validation for:
+   - Valid STDIO, HTTP, and SSE server configurations
+   - Invalid configurations with proper error messages
+   - Edge cases and malformed JSON
+
+#### Manual Testing
 
 1. Ensure your changes don't break `--help` and `--version` commands
 2. Test MCP config discovery and selection manually with different directory options:
@@ -210,7 +236,7 @@ Currently, testing is limited to CLI functionality verification. Before contribu
    - Custom directory via `--config-dir`
    - Custom directory via `CCMCP_CONFIG_DIR` environment variable
 3. Verify Claude Code launching with various config combinations
-4. Test error handling for non-existent config directories
+4. Test error handling for non-existent config directories and invalid configs
 5. Test TUI functionality in TTY environments and readline fallback in non-TTY contexts
 6. Test TUI navigation, selection, and error detail expansion
 
