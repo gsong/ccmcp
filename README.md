@@ -1,5 +1,7 @@
 # Claude Code MCP Selector
 
+[![CI](https://github.com/gsong/ccmcp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/gsong/ccmcp/actions/workflows/ci.yml)
+
 A CLI tool that intelligently discovers, validates, and selects MCP (Model Context Protocol) server configurations for Claude Code.
 
 ![CCMCP Demo](./assets/ccmcp.gif)
