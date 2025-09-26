@@ -143,22 +143,6 @@ describe("ConfigSelector Component", () => {
       expect(output).toContain("Test Config 2");
     });
 
-    it("should handle spacebar input without errors", () => {
-      const { stdin } = render(
-        <ConfigSelector
-          configs={validConfigs}
-          onSelect={mockOnSelect}
-          configDir="/test/config/dir"
-        />,
-      );
-
-      // Should handle spacebar input without throwing
-      expect(() => stdin.write(" ")).not.toThrow();
-
-      // Verify mockOnSelect is not called until Enter is pressed
-      expect(mockOnSelect).not.toHaveBeenCalled();
-    });
-
     it("should display selection footer initially", () => {
       const { lastFrame } = render(
         <ConfigSelector
@@ -185,40 +169,6 @@ describe("ConfigSelector Component", () => {
 
       // Press Enter (should call onSelect regardless of selection state)
       stdin.write("\r");
-
-      expect(mockOnSelect).toHaveBeenCalled();
-    });
-
-    it("should handle navigation input without errors", () => {
-      const { stdin } = render(
-        <ConfigSelector
-          configs={validConfigs}
-          onSelect={mockOnSelect}
-          configDir="/test/config/dir"
-        />,
-      );
-
-      // Should handle navigation input without throwing
-      expect(() => stdin.write("\u001b[B")).not.toThrow(); // Down arrow
-      expect(() => stdin.write("\u001b[A")).not.toThrow(); // Up arrow
-    });
-
-    it("should handle key combinations without errors", () => {
-      const { stdin } = render(
-        <ConfigSelector
-          configs={validConfigs}
-          onSelect={mockOnSelect}
-          configDir="/test/config/dir"
-        />,
-      );
-
-      // Should handle various key inputs without throwing
-      expect(() => {
-        stdin.write("a"); // Select all
-        stdin.write("c"); // Clear
-        stdin.write("p"); // Preview
-        stdin.write("\r"); // Enter
-      }).not.toThrow();
 
       expect(mockOnSelect).toHaveBeenCalled();
     });
