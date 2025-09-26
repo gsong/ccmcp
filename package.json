@@ -36,7 +36,7 @@
     "format": "biome format --write src scripts",
     "format:other": "prettier --write '**/*.{md,json,yaml,yml}'",
     "type-check": "tsc --noEmit",
-    "test": "find src/__tests__ -name '*.test.ts' -type f | xargs node --test --import=tsx/esm",
+    "test": "vitest run",
     "fix": "run-s lint:fix format format:other type-check",
     "compile": "tsc",
     "build": "run-s lint type-check compile",
@@ -59,7 +59,8 @@
     "npm-run-all2": "^8.0.4",
     "prettier": "^3.6.2",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@types/react": "^19.1.13",
