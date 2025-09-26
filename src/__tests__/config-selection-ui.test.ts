@@ -60,6 +60,7 @@ describe("Config Selection User Interface", () => {
   const mixedConfigs: McpConfig[] = [...validConfigs, ...invalidConfigs];
 
   beforeEach(() => {
+    vi.resetModules();
     vi.clearAllMocks();
     mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
     mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
