@@ -17,7 +17,7 @@ interface CliArgs {
   "config-dir"?: string;
 }
 
-function showHelp(): void {
+export function showHelp(): void {
   console.log(`
 ccmcp - Claude Code MCP Selector CLI
 
@@ -40,7 +40,7 @@ Any additional arguments are passed through to Claude Code.
 `);
 }
 
-function showVersion(): void {
+export function showVersion(): void {
   const __dirname = dirname(fileURLToPath(import.meta.url));
   const packageJson = JSON.parse(
     readFileSync(join(__dirname, "../package.json"), "utf8"),
@@ -57,7 +57,7 @@ async function runSelector(
   return await launchClaudeCode({ selectedConfigs, passthroughArgs });
 }
 
-function validateConfigDir(configDir: string): void {
+export function validateConfigDir(configDir: string): void {
   if (configDir.trim() === "") {
     throw new Error("Config directory cannot be empty");
   }
@@ -67,7 +67,7 @@ function validateConfigDir(configDir: string): void {
   }
 }
 
-function parseCliArgs(): { values: CliArgs; positionals: string[] } {
+export function parseCliArgs(): { values: CliArgs; positionals: string[] } {
   const rawArgs = process.argv.slice(2);
   const ccmcpFlags = new Set([
     "-h",
@@ -119,7 +119,7 @@ function parseCliArgs(): { values: CliArgs; positionals: string[] } {
   return { values: result.values, positionals: passthroughArgs };
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const { values, positionals } = parseCliArgs();
 
   if (values.help) {
