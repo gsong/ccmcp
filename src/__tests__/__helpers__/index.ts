@@ -15,6 +15,8 @@ export {
   createMockChildProcessWithEvents,
   type MockChildProcess,
 } from "./child-process.js";
+// Ink mocking helpers
+export { type MockInkRender, setupInkRenderTest } from "./ink.js";
 // Readline mocking helpers
 export {
   type MockReadlineInterface,

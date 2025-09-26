@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { McpConfig } from "../mcp-scanner.js";
 import {
+  setupInkRenderTest,
   setupNonTTYEnvironment,
+  setupReadlineError,
   setupReadlineTest,
 } from "./__helpers__/index.js";
 
-// Mock the readline and ink modules need 'as any' due to complex Node.js interface typing
+// Mock the readline and ink modules
 
 // Mock the ink module
 vi.mock("ink", () => ({
@@ -125,20 +127,14 @@ describe("Config Selection User Interface", () => {
     it("should display proper header and instructions", async () => {
       const cleanupTTY = setupNonTTYEnvironment();
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (prompt: string, callback: (answer: string) => void) => {
-            // Verify the prompt is passed correctly
-            expect(prompt).toBe("> ");
-            callback("");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
+      const mockReadlineInterface = await setupReadlineTest("");
+      // Override the question implementation to verify the prompt
+      mockReadlineInterface.question.mockImplementation(
+        (prompt: string, callback: (answer: string) => void) => {
+          // Verify the prompt is passed correctly
+          expect(prompt).toBe("> ");
+          callback("");
+        },
       );
 
       try {
@@ -181,19 +177,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      await setupReadlineTest("");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -223,19 +207,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("1,2");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      await setupReadlineTest("1,2");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -287,19 +259,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("all");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      await setupReadlineTest("all");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -318,19 +278,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("ALL");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      await setupReadlineTest("ALL");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -349,19 +297,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("1,3");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      await setupReadlineTest("1,3");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -393,19 +329,7 @@ describe("Config Selection User Interface", () => {
           configurable: true,
         });
 
-        const mockReadlineInterface = {
-          question: vi.fn(
-            (_prompt: string, callback: (answer: string) => void) => {
-              callback(testCase.input);
-            },
-          ),
-          close: vi.fn(),
-          on: vi.fn(),
-        };
-        vi.mocked(
-          await import("node:readline"),
-          // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        ).createInterface.mockReturnValue(mockReadlineInterface as any);
+        await setupReadlineTest(testCase.input);
 
         // Re-import to get fresh module
         vi.resetModules();
@@ -427,19 +351,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      await setupReadlineTest("");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -458,19 +370,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("none");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      await setupReadlineTest("none");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -489,19 +389,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("1,1,2,2,1");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      await setupReadlineTest("1,1,2,2,1");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -525,13 +413,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockRender = vi.fn(() => ({
-        waitUntilExit: vi.fn(() => Promise.resolve()),
-      }));
-      vi.mocked(await import("ink")).render.mockImplementation(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking React render function
-        mockRender as any,
-      );
+      const mockRender = await setupInkRenderTest();
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -554,11 +436,9 @@ describe("Config Selection User Interface", () => {
       );
 
       // Simulate user selection by calling onSelect
-      // biome-ignore lint/suspicious/noExplicitAny: accessing mock call data structure
-      const renderCall = mockRender.mock.calls[0] as any;
-      if (renderCall?.[0]?.props) {
-        const props = renderCall[0].props;
-        props.onSelect([validConfigs[0]]);
+      const renderCall = mockRender.mock.calls[0];
+      if (renderCall?.[0]?.props?.onSelect) {
+        renderCall[0].props.onSelect([validConfigs[0]]);
       }
 
       await selectionPromise;
@@ -574,19 +454,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("1");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      const mockReadlineInterface = await setupReadlineTest("1");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -616,19 +484,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      await setupReadlineTest("");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -660,22 +516,9 @@ describe("Config Selection User Interface", () => {
           configurable: true,
         });
 
-        const mockReadlineInterface = {
-          question: vi.fn(
-            (_prompt: string, callback: (answer: string) => void) => {
-              callback(testCase.input);
-            },
-          ),
-          close: vi.fn(),
-          on: vi.fn(),
-        };
-
         // Clear existing mocks and re-setup
         vi.clearAllMocks();
-        vi.mocked(
-          await import("node:readline"),
-          // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        ).createInterface.mockReturnValue(mockReadlineInterface as any);
+        await setupReadlineTest(testCase.input);
 
         const { selectConfigs } = await import("../console-selector.js");
 
@@ -696,19 +539,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("0,99");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      await setupReadlineTest("0,99");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -730,19 +561,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("1,5,10");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      await setupReadlineTest("1,5,10");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -763,19 +582,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("1,abc,2,xyz,3");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      await setupReadlineTest("1,abc,2,xyz,3");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -800,19 +607,7 @@ describe("Config Selection User Interface", () => {
       const mockProcessOn = vi.spyOn(process, "once");
       const mockProcessRemoveListener = vi.spyOn(process, "removeListener");
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      await setupReadlineTest("");
 
       const { selectConfigs } = await import("../console-selector.js");
 
@@ -852,19 +647,8 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(),
-        close: vi.fn(),
-        on: vi.fn((event: string, callback: (error: Error) => void) => {
-          if (event === "error") {
-            // Simulate an error being emitted
-            setImmediate(() => callback(new Error("Readline error")));
-          }
-        }),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
+      const mockReadlineInterface = await setupReadlineError(
+        new Error("Readline error"),
       );
 
       const { selectConfigs } = await import("../console-selector.js");
@@ -887,19 +671,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback("1");
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      const mockReadlineInterface = await setupReadlineTest("1");
 
       const { selectConfigs } = await import("../console-selector.js");
 
