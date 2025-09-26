@@ -1,10 +1,9 @@
-import assert from "node:assert";
-import { describe, it, mock } from "node:test";
+import { describe, expect, it, vi } from "vitest";
 
 describe("CLI User Experience", () => {
   describe("Help and Version Display", () => {
     it("should display help output with proper formatting", async () => {
-      const mockConsoleLog = mock.fn();
+      const mockConsoleLog = vi.fn();
       const originalConsoleLog = console.log;
 
       try {
@@ -13,28 +12,28 @@ describe("CLI User Experience", () => {
         const { showHelp } = await import("../index.js");
         showHelp();
 
-        assert.strictEqual(mockConsoleLog.mock.callCount(), 1);
-        const helpOutput = mockConsoleLog.mock.calls[0]?.arguments[0] as string;
+        expect(mockConsoleLog).toHaveBeenCalledTimes(1);
+        const helpOutput = mockConsoleLog.mock.calls[0]?.[0] as string;
 
         // Check for proper structure - be more forgiving with exact text matches
-        assert.ok(helpOutput.includes("ccmcp"));
-        assert.ok(helpOutput.includes("Usage"));
-        assert.ok(helpOutput.includes("Description"));
-        assert.ok(helpOutput.includes("Options"));
-        assert.ok(helpOutput.includes("help"));
-        assert.ok(helpOutput.includes("version"));
-        assert.ok(helpOutput.includes("config-dir"));
-        assert.ok(helpOutput.includes("Environment Variables"));
-        assert.ok(helpOutput.includes("CCMCP_CONFIG_DIR"));
-        assert.ok(helpOutput.includes("arguments are passed through"));
+        expect(helpOutput).toContain("ccmcp");
+        expect(helpOutput).toContain("Usage");
+        expect(helpOutput).toContain("Description");
+        expect(helpOutput).toContain("Options");
+        expect(helpOutput).toContain("help");
+        expect(helpOutput).toContain("version");
+        expect(helpOutput).toContain("config-dir");
+        expect(helpOutput).toContain("Environment Variables");
+        expect(helpOutput).toContain("CCMCP_CONFIG_DIR");
+        expect(helpOutput).toContain("arguments are passed through");
       } finally {
         console.log = originalConsoleLog;
-        mock.restoreAll();
+        vi.restoreAllMocks();
       }
     });
 
     it("should display version in correct format", async () => {
-      const mockConsoleLog = mock.fn();
+      const mockConsoleLog = vi.fn();
       const originalConsoleLog = console.log;
 
       try {
@@ -43,15 +42,14 @@ describe("CLI User Experience", () => {
         const { showVersion } = await import("../index.js");
         showVersion();
 
-        assert.strictEqual(mockConsoleLog.mock.callCount(), 1);
-        const versionOutput = mockConsoleLog.mock.calls[0]
-          ?.arguments[0] as string;
+        expect(mockConsoleLog).toHaveBeenCalledTimes(1);
+        const versionOutput = mockConsoleLog.mock.calls[0]?.[0] as string;
 
         // Should match format: "ccmcp v{version}"
-        assert.ok(versionOutput.match(/^ccmcp v\d+\.\d+\.\d+$/));
+        expect(versionOutput).toMatch(/^ccmcp v\d+\.\d+\.\d+$/);
       } finally {
         console.log = originalConsoleLog;
-        mock.restoreAll();
+        vi.restoreAllMocks();
       }
     });
   });
@@ -60,26 +58,24 @@ describe("CLI User Experience", () => {
     it("should reject empty config directory with clear error", async () => {
       const { validateConfigDir } = await import("../index.js");
 
-      assert.throws(() => validateConfigDir(""), {
-        name: "Error",
-        message: "Config directory cannot be empty",
-      });
+      expect(() => validateConfigDir("")).toThrow(
+        "Config directory cannot be empty",
+      );
     });
 
     it("should reject config directory with invalid characters", async () => {
       const { validateConfigDir } = await import("../index.js");
 
-      assert.throws(() => validateConfigDir("/path/with/null\0byte"), {
-        name: "Error",
-        message: "Config directory contains invalid characters",
-      });
+      expect(() => validateConfigDir("/path/with/null\0byte")).toThrow(
+        "Config directory contains invalid characters",
+      );
     });
 
     it("should accept valid config directory", async () => {
       const { validateConfigDir } = await import("../index.js");
 
       // Should not throw
-      assert.doesNotThrow(() => validateConfigDir("/valid/path"));
+      expect(() => validateConfigDir("/valid/path")).not.toThrow();
     });
 
     it("should parse help flag correctly", async () => {
@@ -91,8 +87,8 @@ describe("CLI User Experience", () => {
         const { parseCliArgs } = await import("../index.js");
         const result = parseCliArgs();
 
-        assert.strictEqual(result.values.help, true);
-        assert.strictEqual(result.positionals.length, 0);
+        expect(result.values.help).toBe(true);
+        expect(result.positionals).toHaveLength(0);
       } finally {
         process.argv = originalArgv;
       }
@@ -107,8 +103,8 @@ describe("CLI User Experience", () => {
         const { parseCliArgs } = await import("../index.js");
         const result = parseCliArgs();
 
-        assert.strictEqual(result.values.version, true);
-        assert.strictEqual(result.positionals.length, 0);
+        expect(result.values.version).toBe(true);
+        expect(result.positionals).toHaveLength(0);
       } finally {
         process.argv = originalArgv;
       }
@@ -123,7 +119,7 @@ describe("CLI User Experience", () => {
         const { parseCliArgs } = await import("../index.js");
         const result = parseCliArgs();
 
-        assert.strictEqual(result.values.help, true);
+        expect(result.values.help).toBe(true);
       } finally {
         process.argv = originalArgv;
       }
@@ -138,8 +134,8 @@ describe("CLI User Experience", () => {
         const { parseCliArgs } = await import("../index.js");
         const result = parseCliArgs();
 
-        assert.strictEqual(result.values["config-dir"], "/test/path");
-        assert.strictEqual(result.positionals.length, 0);
+        expect(result.values["config-dir"]).toBe("/test/path");
+        expect(result.positionals).toHaveLength(0);
       } finally {
         process.argv = originalArgv;
       }
@@ -154,8 +150,8 @@ describe("CLI User Experience", () => {
         const { parseCliArgs } = await import("../index.js");
         const result = parseCliArgs();
 
-        assert.strictEqual(result.values["config-dir"], "/test/path");
-        assert.strictEqual(result.positionals.length, 0);
+        expect(result.values["config-dir"]).toBe("/test/path");
+        expect(result.positionals).toHaveLength(0);
       } finally {
         process.argv = originalArgv;
       }
@@ -170,7 +166,7 @@ describe("CLI User Experience", () => {
         const { parseCliArgs } = await import("../index.js");
         const result = parseCliArgs();
 
-        assert.deepStrictEqual(result.positionals, ["--resume", "--verbose"]);
+        expect(result.positionals).toEqual(["--resume", "--verbose"]);
       } finally {
         process.argv = originalArgv;
       }
@@ -192,8 +188,8 @@ describe("CLI User Experience", () => {
         const { parseCliArgs } = await import("../index.js");
         const result = parseCliArgs();
 
-        assert.strictEqual(result.values["config-dir"], "/path");
-        assert.deepStrictEqual(result.positionals, ["--resume", "--verbose"]);
+        expect(result.values["config-dir"]).toBe("/path");
+        expect(result.positionals).toEqual(["--resume", "--verbose"]);
       } finally {
         process.argv = originalArgv;
       }
@@ -208,10 +204,9 @@ describe("CLI User Experience", () => {
 
         const { parseCliArgs } = await import("../index.js");
 
-        assert.throws(() => parseCliArgs(), {
-          name: "Error",
-          message: "Config directory cannot be empty",
-        });
+        expect(() => parseCliArgs()).toThrow(
+          "Config directory cannot be empty",
+        );
       } finally {
         process.argv = originalArgv;
       }
@@ -220,7 +215,7 @@ describe("CLI User Experience", () => {
 
   describe("Output Formatting", () => {
     it("should have consistent help message structure", async () => {
-      const mockConsoleLog = mock.fn();
+      const mockConsoleLog = vi.fn();
       const originalConsoleLog = console.log;
 
       try {
@@ -229,33 +224,33 @@ describe("CLI User Experience", () => {
         const { showHelp } = await import("../index.js");
         showHelp();
 
-        const helpOutput = mockConsoleLog.mock.calls[0]?.arguments[0] as string;
+        const helpOutput = mockConsoleLog.mock.calls[0]?.[0] as string;
 
         // Verify specific format requirements
         const lines = helpOutput.split("\n");
 
         // Should start with a newline and have the title
-        assert.ok(lines[1]?.includes("ccmcp - Claude Code MCP Selector CLI"));
+        expect(lines[1]).toContain("ccmcp - Claude Code MCP Selector CLI");
 
         // Should have Usage section
-        assert.ok(helpOutput.includes("Usage:"));
-        assert.ok(helpOutput.includes("ccmcp [options] [claude-options...]"));
+        expect(helpOutput).toContain("Usage:");
+        expect(helpOutput).toContain("ccmcp [options] [claude-options...]");
 
         // Should have Description section
-        assert.ok(helpOutput.includes("Description:"));
+        expect(helpOutput).toContain("Description:");
 
         // Should have Options section with proper formatting
-        assert.ok(helpOutput.includes("Options:"));
-        assert.ok(helpOutput.includes("  -h, --help"));
-        assert.ok(helpOutput.includes("  -v, --version"));
-        assert.ok(helpOutput.includes("  -c, --config-dir"));
+        expect(helpOutput).toContain("Options:");
+        expect(helpOutput).toContain("  -h, --help");
+        expect(helpOutput).toContain("  -v, --version");
+        expect(helpOutput).toContain("  -c, --config-dir");
 
         // Should have Environment Variables section
-        assert.ok(helpOutput.includes("Environment Variables:"));
-        assert.ok(helpOutput.includes("  CCMCP_CONFIG_DIR"));
+        expect(helpOutput).toContain("Environment Variables:");
+        expect(helpOutput).toContain("  CCMCP_CONFIG_DIR");
       } finally {
         console.log = originalConsoleLog;
-        mock.restoreAll();
+        vi.restoreAllMocks();
       }
     });
   });

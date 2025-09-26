@@ -12,7 +12,9 @@ vi.mock("node:child_process", () => ({
 describe("Claude Code Launch Behavior", () => {
   let mockConsoleLog: ReturnType<typeof vi.spyOn>;
   let mockConsoleError: ReturnType<typeof vi.spyOn>;
+  // biome-ignore lint/suspicious/noExplicitAny: Mock spies need specific typing
   let mockProcessExit: any;
+  // biome-ignore lint/suspicious/noExplicitAny: Mock spies need specific typing
   let mockProcessKill: any;
 
   beforeEach(() => {
@@ -22,7 +24,8 @@ describe("Claude Code Launch Behavior", () => {
     mockProcessExit = vi
       .spyOn(process, "exit")
       .mockImplementation((_code?: string | number | null) => {
-        throw new Error("process.exit called");
+        // Don't throw immediately, just return to prevent process.exit
+        return undefined as never;
       });
     mockProcessKill = vi
       .spyOn(process, "kill")
@@ -212,12 +215,13 @@ describe("Claude Code Launch Behavior", () => {
       args.push(...passthroughArgs);
 
       const escapeShellArg = (arg: string): string => {
-        return `"${arg.replace(/[\\\\"$`]/g, "\\\\$&")}"`;
+        return `"${arg.replace(/[\\"$`]/g, "\\$&")}"`;
       };
       const escapedArgs = args.map(escapeShellArg);
       const command = `exec "/usr/local/bin/claude" ${escapedArgs.join(" ")}`;
 
       // The argument should be quoted and escaped properly
+      // The input has literal \n sequences, after escaping backslashes become \\n
       expect(command).toBe(
         'exec "/usr/local/bin/claude" "--arg=value\\\\nwith\\\\nnewlines"',
       );
@@ -263,11 +267,20 @@ describe("Claude Code Launch Behavior", () => {
         { name: "test-config", path: "/path/to/config.json", valid: true },
       ];
 
-      // Start the launch process
+      // Start the launch process - expect process.exit to be called
       launchClaudeCode({ selectedConfigs, passthroughArgs: [] });
 
-      // Give async operations time to execute
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      // Give async operations time to execute and handle expected exit
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          try {
+            resolve(undefined);
+          } catch {
+            // Expected - process.exit mock throws
+            resolve(undefined);
+          }
+        }, 50);
+      });
 
       // Verify execFileSync was called correctly
       expect(execFileSync).toHaveBeenCalledWith("which", ["claude"], {
@@ -385,7 +398,16 @@ describe("Claude Code Launch Behavior", () => {
         passthroughArgs: ["--resume", "--verbose"],
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          try {
+            resolve(undefined);
+          } catch {
+            // Expected - process.exit mock throws
+            resolve(undefined);
+          }
+        }, 50);
+      });
 
       const spawnCall = vi.mocked(spawn).mock.calls[0];
       const command = spawnCall?.[1]?.[1];
@@ -426,7 +448,16 @@ describe("Claude Code Launch Behavior", () => {
       launchClaudeCode({ selectedConfigs, passthroughArgs: [] });
 
       // Give time for the async error to be emitted
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          try {
+            resolve(undefined);
+          } catch {
+            // Expected - process.exit mock throws
+            resolve(undefined);
+          }
+        }, 100);
+      });
 
       // Verify the error was logged
       expect(mockConsoleError).toHaveBeenCalledWith(
@@ -451,7 +482,7 @@ describe("Claude Code Launch Behavior", () => {
 
       // Mock process.exit to capture the exit code
       const mockExit = vi.spyOn(process, "exit").mockImplementation(() => {
-        throw new Error("process.exit called");
+        return undefined as never;
       });
 
       const { launchClaudeCode } = await import("../claude-launcher.js");
@@ -463,7 +494,16 @@ describe("Claude Code Launch Behavior", () => {
       launchClaudeCode({ selectedConfigs, passthroughArgs: [] });
 
       // Give time for the exit handler to be called
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          try {
+            resolve(undefined);
+          } catch {
+            // Expected - process.exit mock throws
+            resolve(undefined);
+          }
+        }, 100);
+      });
 
       expect(mockExit).toHaveBeenCalledWith(42);
 
@@ -497,7 +537,16 @@ describe("Claude Code Launch Behavior", () => {
       launchClaudeCode({ selectedConfigs, passthroughArgs: [] });
 
       // Give time for the exit handler to be called
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          try {
+            resolve(undefined);
+          } catch {
+            // Expected - process.exit mock throws
+            resolve(undefined);
+          }
+        }, 100);
+      });
 
       expect(mockKill).toHaveBeenCalledWith(process.pid, "SIGTERM");
 

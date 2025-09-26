@@ -1,5 +1,4 @@
-import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, expect, it } from "vitest";
 import {
   formatValidationErrors,
   validateMcpConfig,
@@ -20,8 +19,10 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, true);
-      assert.ok(result.data);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeTruthy();
+      }
     });
 
     it("should validate HTTP server configuration", () => {
@@ -38,8 +39,10 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, true);
-      assert.ok(result.data);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeTruthy();
+      }
     });
 
     it("should validate configuration with description", () => {
@@ -55,8 +58,10 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, true);
-      assert.ok(result.data);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeTruthy();
+      }
     });
 
     it("should validate configuration with both STDIO and HTTP servers", () => {
@@ -75,8 +80,10 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, true);
-      assert.ok(result.data);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeTruthy();
+      }
     });
 
     it("should validate legacy STDIO server without type field", () => {
@@ -90,9 +97,11 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, true);
-      assert.ok(result.data);
-      assert.strictEqual(result.data.mcpServers?.legacyServer?.type, "stdio");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeTruthy();
+      }
+      expect(result.data?.mcpServers?.legacyServer?.type).toBe("stdio");
     });
 
     it("should validate legacy STDIO server with environment variables", () => {
@@ -110,13 +119,12 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, true);
-      assert.ok(result.data);
-      assert.strictEqual(
-        result.data.mcpServers?.legacyServerWithEnv?.type,
-        "stdio",
-      );
-      assert.deepStrictEqual(result.data.mcpServers?.legacyServerWithEnv?.env, {
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeTruthy();
+      }
+      expect(result.data?.mcpServers?.legacyServerWithEnv?.type).toBe("stdio");
+      expect(result.data?.mcpServers?.legacyServerWithEnv?.env).toEqual({
         PYTHONPATH: "/custom/path",
         DEBUG: "true",
       });
@@ -142,11 +150,13 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, true);
-      assert.ok(result.data);
-      assert.strictEqual(result.data.mcpServers?.legacyServer?.type, "stdio");
-      assert.strictEqual(result.data.mcpServers?.modernServer?.type, "stdio");
-      assert.strictEqual(result.data.mcpServers?.httpServer?.type, "http");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeTruthy();
+      }
+      expect(result.data?.mcpServers?.legacyServer?.type).toBe("stdio");
+      expect(result.data?.mcpServers?.modernServer?.type).toBe("stdio");
+      expect(result.data?.mcpServers?.httpServer?.type).toBe("http");
     });
   });
 
@@ -157,9 +167,11 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, true);
-      assert.ok(result.data);
-      assert.deepStrictEqual(result.data.mcpServers, {});
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeTruthy();
+      }
+      expect(result.data?.mcpServers).toEqual({});
     });
 
     it("should reject STDIO server without command", () => {
@@ -173,15 +185,17 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, false);
-      assert.ok(result.errors);
-      assert.ok(
-        result.errors.some(
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.errors).toBeTruthy();
+      }
+      expect(
+        result.errors?.some(
           (error) =>
             error.path.includes("command") ||
             error.message.includes("expected string"),
         ),
-      );
+      ).toBe(true);
     });
 
     it("should reject STDIO server with empty command", () => {
@@ -196,13 +210,15 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, false);
-      assert.ok(result.errors);
-      assert.ok(
-        result.errors.some((error) =>
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.errors).toBeTruthy();
+      }
+      expect(
+        result.errors?.some((error) =>
           error.message.includes("Command cannot be empty"),
         ),
-      );
+      ).toBe(true);
     });
 
     it("should reject HTTP server without url", () => {
@@ -215,15 +231,17 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, false);
-      assert.ok(result.errors);
-      assert.ok(
-        result.errors.some(
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.errors).toBeTruthy();
+      }
+      expect(
+        result.errors?.some(
           (error) =>
             error.path.includes("url") ||
             error.message.includes("expected string"),
         ),
-      );
+      ).toBe(true);
     });
 
     it("should reject HTTP server with invalid url", () => {
@@ -237,13 +255,15 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, false);
-      assert.ok(result.errors);
-      assert.ok(
-        result.errors.some((error) =>
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.errors).toBeTruthy();
+      }
+      expect(
+        result.errors?.some((error) =>
           error.message.includes("Must be a valid URL"),
         ),
-      );
+      ).toBe(true);
     });
 
     it("should reject server with invalid type", () => {
@@ -257,8 +277,10 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, false);
-      assert.ok(result.errors);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.errors).toBeTruthy();
+      }
     });
 
     it("should reject legacy STDIO server with empty command", () => {
@@ -272,13 +294,15 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, false);
-      assert.ok(result.errors);
-      assert.ok(
-        result.errors.some((error) =>
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.errors).toBeTruthy();
+      }
+      expect(
+        result.errors?.some((error) =>
           error.message.includes("Command cannot be empty"),
         ),
-      );
+      ).toBe(true);
     });
 
     it("should reject legacy STDIO server without command", () => {
@@ -291,34 +315,42 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, false);
-      assert.ok(result.errors);
-      assert.ok(
-        result.errors.some(
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.errors).toBeTruthy();
+      }
+      expect(
+        result.errors?.some(
           (error) =>
             error.path.includes("command") ||
             error.message.includes("expected string"),
         ),
-      );
+      ).toBe(true);
     });
 
     it("should reject non-object configuration", () => {
       const result = validateMcpConfig("invalid");
-      assert.strictEqual(result.success, false);
-      assert.ok(result.errors);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.errors).toBeTruthy();
+      }
     });
 
     it("should reject null configuration", () => {
       const result = validateMcpConfig(null);
-      assert.strictEqual(result.success, false);
-      assert.ok(result.errors);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.errors).toBeTruthy();
+      }
     });
 
     it("should accept empty object configuration", () => {
       const result = validateMcpConfig({});
-      assert.strictEqual(result.success, true);
-      assert.ok(result.data);
-      assert.deepStrictEqual(result.data.mcpServers, {});
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeTruthy();
+      }
+      expect(result.data?.mcpServers).toEqual({});
     });
   });
 
@@ -334,13 +366,13 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, false);
+      expect(result.success).toBe(false);
 
-      if (result.errors) {
+      if (!result.success && result.errors) {
         const formattedError = formatValidationErrors(result.errors);
-        assert.ok(typeof formattedError === "string");
-        assert.ok(formattedError.length > 0);
-        assert.ok(!formattedError.includes("Multiple validation errors"));
+        expect(typeof formattedError).toBe("string");
+        expect(formattedError.length).toBeGreaterThan(0);
+        expect(formattedError).not.toContain("Multiple validation errors");
       }
     });
 
@@ -359,18 +391,18 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, false);
+      expect(result.success).toBe(false);
 
-      if (result.errors && result.errors.length > 1) {
+      if (!result.success && result.errors && result.errors.length > 1) {
         const formattedError = formatValidationErrors(result.errors);
-        assert.ok(formattedError.includes("Multiple validation errors"));
-        assert.ok(formattedError.includes("  - "));
+        expect(formattedError).toContain("Multiple validation errors");
+        expect(formattedError).toContain("  - ");
       }
     });
 
     it("should format empty errors array", () => {
       const formattedError = formatValidationErrors([]);
-      assert.strictEqual(formattedError, "Unknown validation error");
+      expect(formattedError).toBe("Unknown validation error");
     });
   });
 
@@ -387,7 +419,7 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, true);
+      expect(result.success).toBe(true);
     });
 
     it("should handle env field with string values only", () => {
@@ -406,7 +438,7 @@ describe("MCP Configuration Schema Validation", () => {
       };
 
       const result = validateMcpConfig(config);
-      assert.strictEqual(result.success, true);
+      expect(result.success).toBe(true);
     });
   });
 });
