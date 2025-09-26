@@ -2,13 +2,6 @@ import type { Instance } from "ink";
 import { vi } from "vitest";
 
 /**
- * Mock ink render result for testing
- */
-export interface MockInkRender {
-  waitUntilExit: ReturnType<typeof vi.fn>;
-}
-
-/**
  * Creates a properly typed mock for Ink's render function
  * @param waitUntilExitImpl - Implementation for waitUntilExit method
  * @returns Typed mock render result
@@ -26,11 +19,11 @@ function createMockInkRender(
 }
 
 /**
- * Sets up Ink render mock for testing
+ * Installs a mock for Ink's render function
  * @param waitUntilExitImpl - Optional implementation for waitUntilExit
  * @returns Mock render function for additional expectations
  */
-export async function setupInkRenderTest(
+export async function mockInkRender(
   waitUntilExitImpl?: () => Promise<void>,
 ): Promise<ReturnType<typeof vi.fn>> {
   const mockRender = vi.fn(() => createMockInkRender(waitUntilExitImpl));

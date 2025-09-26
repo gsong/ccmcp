@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { McpConfig } from "../mcp-scanner.js";
 import {
-  setupInkRenderTest,
+  mockInkRender,
   setupNonTTYEnvironment,
   setupReadlineError,
   setupReadlineTest,
@@ -413,7 +413,7 @@ describe("Config Selection User Interface", () => {
         configurable: true,
       });
 
-      const mockRender = await setupInkRenderTest();
+      const mockRender = await mockInkRender();
 
       const { selectConfigs } = await import("../console-selector.js");
 
