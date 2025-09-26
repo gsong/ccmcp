@@ -8,7 +8,7 @@ import { parseArgs } from "node:util";
 import { launchClaudeCode } from "./claude-launcher.js";
 import { selectConfigs } from "./console-selector.js";
 import type { McpConfig } from "./mcp-scanner.js";
-import { scanMcpConfigs } from "./mcp-scanner.js";
+import { MissingConfigDirectoryError, scanMcpConfigs } from "./mcp-scanner.js";
 import { formatErrorMessage } from "./utils.js";
 
 interface CliArgs {
@@ -151,6 +151,10 @@ async function main(): Promise<void> {
     const exitCode = await runSelector(configs, positionals, resolvedConfigDir);
     process.exit(exitCode);
   } catch (error: unknown) {
+    if (error instanceof MissingConfigDirectoryError) {
+      console.error(`Error: ${error.message}`);
+      process.exit(1);
+    }
     console.error(`Error: ${formatErrorMessage(error)}`);
     process.exit(1);
   }

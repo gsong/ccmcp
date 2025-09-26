@@ -8,6 +8,13 @@ import {
 } from "./schemas/mcp-config.js";
 import { formatConfigDisplayName, formatErrorMessage } from "./utils.js";
 
+export class MissingConfigDirectoryError extends Error {
+  constructor(public readonly directoryPath: string) {
+    super(`Config directory not found: ${directoryPath}`);
+    this.name = "MissingConfigDirectoryError";
+  }
+}
+
 export interface McpConfig {
   name: string;
   path: string;
@@ -22,8 +29,18 @@ export async function scanMcpConfigs(configDir?: string): Promise<McpConfig[]> {
 
   try {
     await stat(resolvedConfigDir);
-  } catch {
-    return [];
+  } catch (error: unknown) {
+    // Check if it's specifically a "not found" error (ENOENT)
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
+      throw new MissingConfigDirectoryError(resolvedConfigDir);
+    }
+    // For other stat errors, re-throw the original error
+    throw error;
   }
 
   try {
