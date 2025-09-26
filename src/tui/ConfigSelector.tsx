@@ -162,7 +162,11 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
       {/* Main content area */}
       <Box flexGrow={1}>
         {/* Left panel - Config list */}
-        <Box flexDirection="column" flexBasis="50%" marginRight={2}>
+        <Box
+          flexDirection="column"
+          flexBasis={showingPreview ? "50%" : "100%"}
+          marginRight={showingPreview ? 2 : 0}
+        >
           <Text bold>Valid Configs ({validConfigs.length}):</Text>
           <Box flexDirection="column" marginTop={1}>
             {validConfigs.map(renderConfigItem)}
