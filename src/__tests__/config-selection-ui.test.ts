@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { McpConfig } from "../mcp-scanner.js";
+import {
+  setupNonTTYEnvironment,
+  setupReadlineTest,
+} from "./__helpers__/index.js";
 
 // Mock the readline and ink modules need 'as any' due to complex Node.js interface typing
 
@@ -81,70 +85,45 @@ describe("Config Selection User Interface", () => {
 
   describe("Valid Config Presentation", () => {
     it("should display valid configs with proper formatting in non-TTY environment", async () => {
-      // Mock non-TTY environment
-      Object.defineProperty(process.stdin, "isTTY", {
-        value: false,
-        configurable: true,
-      });
-      Object.defineProperty(process.stdout, "isTTY", {
-        value: false,
-        configurable: true,
-      });
+      const cleanupTTY = setupNonTTYEnvironment();
+      await setupReadlineTest("");
 
-      // Mock readline interface
-      const mockReadlineInterface = {
-        question: vi.fn(
-          (_prompt: string, callback: (answer: string) => void) => {
-            callback(""); // Empty input to exit
-          },
-        ),
-        close: vi.fn(),
-        on: vi.fn(),
-      };
-      vi.mocked(await import("node:readline")).createInterface.mockReturnValue(
-        // biome-ignore lint/suspicious/noExplicitAny: mocking complex Node.js readline interface
-        mockReadlineInterface as any,
-      );
+      try {
+        const { selectConfigs } = await import("../console-selector.js");
 
-      const { selectConfigs } = await import("../console-selector.js");
+        await selectConfigs(validConfigs, "/test/config/dir");
 
-      await selectConfigs(validConfigs, "/test/config/dir");
+        expect(mockConsoleLog).toHaveBeenCalledWith("\nAvailable MCP configs:");
+        expect(mockConsoleLog).toHaveBeenCalledWith("======================");
 
-      expect(mockConsoleLog).toHaveBeenCalledWith("\nAvailable MCP configs:");
-      expect(mockConsoleLog).toHaveBeenCalledWith("======================");
+        // Check that each valid config is displayed with proper numbering
+        expect(mockConsoleLog).toHaveBeenCalledWith(
+          "1. Test Config 1 - Sample MCP server",
+        );
+        expect(mockConsoleLog).toHaveBeenCalledWith(
+          "2. Test Config 2 - Another MCP server",
+        );
+        expect(mockConsoleLog).toHaveBeenCalledWith(
+          "3. Test Config 3 - Third MCP server",
+        );
 
-      // Check that each valid config is displayed with proper numbering
-      expect(mockConsoleLog).toHaveBeenCalledWith(
-        "1. Test Config 1 - Sample MCP server",
-      );
-      expect(mockConsoleLog).toHaveBeenCalledWith(
-        "2. Test Config 2 - Another MCP server",
-      );
-      expect(mockConsoleLog).toHaveBeenCalledWith(
-        "3. Test Config 3 - Third MCP server",
-      );
-
-      // Check instructions are displayed
-      expect(mockConsoleLog).toHaveBeenCalledWith(
-        "\nEnter config numbers to select (comma-separated, e.g., '1,3,5'):",
-      );
-      expect(mockConsoleLog).toHaveBeenCalledWith(
-        "Press Enter with no input to launch without any configs:",
-      );
-      expect(mockConsoleLog).toHaveBeenCalledWith(
-        "Type 'all' to select all valid configs:",
-      );
+        // Check instructions are displayed
+        expect(mockConsoleLog).toHaveBeenCalledWith(
+          "\nEnter config numbers to select (comma-separated, e.g., '1,3,5'):",
+        );
+        expect(mockConsoleLog).toHaveBeenCalledWith(
+          "Press Enter with no input to launch without any configs:",
+        );
+        expect(mockConsoleLog).toHaveBeenCalledWith(
+          "Type 'all' to select all valid configs:",
+        );
+      } finally {
+        cleanupTTY();
+      }
     });
 
     it("should display proper header and instructions", async () => {
-      Object.defineProperty(process.stdin, "isTTY", {
-        value: false,
-        configurable: true,
-      });
-      Object.defineProperty(process.stdout, "isTTY", {
-        value: false,
-        configurable: true,
-      });
+      const cleanupTTY = setupNonTTYEnvironment();
 
       const mockReadlineInterface = {
         question: vi.fn(
@@ -162,17 +141,21 @@ describe("Config Selection User Interface", () => {
         mockReadlineInterface as any,
       );
 
-      const { selectConfigs } = await import("../console-selector.js");
+      try {
+        const { selectConfigs } = await import("../console-selector.js");
 
-      await selectConfigs(validConfigs, "/test/config/dir");
+        await selectConfigs(validConfigs, "/test/config/dir");
 
-      expect(mockConsoleLog).toHaveBeenCalledWith("\nAvailable MCP configs:");
-      expect(mockConsoleLog).toHaveBeenCalledWith("======================");
-      // The prompt "> " is passed to readline.question, not logged to console
-      expect(mockReadlineInterface.question).toHaveBeenCalledWith(
-        "> ",
-        expect.any(Function),
-      );
+        expect(mockConsoleLog).toHaveBeenCalledWith("\nAvailable MCP configs:");
+        expect(mockConsoleLog).toHaveBeenCalledWith("======================");
+        // The prompt "> " is passed to readline.question, not logged to console
+        expect(mockReadlineInterface.question).toHaveBeenCalledWith(
+          "> ",
+          expect.any(Function),
+        );
+      } finally {
+        cleanupTTY();
+      }
     });
 
     it("should handle empty config list gracefully", async () => {

@@ -1,15 +1,12 @@
 import { chmod, mkdir, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { MissingConfigDirectoryError, scanMcpConfigs } from "../mcp-scanner.js";
+import { createUniqueTestDir, withTempDir } from "./__helpers__/index.js";
 
 describe("MCP Scanner", () => {
   // Create a unique test directory
-  const testDir = join(
-    tmpdir(),
-    `ccmcp-test-${Date.now()}-${Math.random().toString(36).substring(7)}`,
-  );
+  const testDir = createUniqueTestDir();
 
   it("should throw MissingConfigDirectoryError when directory doesn't exist", async () => {
     const nonExistentDir = join(testDir, "nonexistent");
@@ -34,44 +31,38 @@ describe("MCP Scanner", () => {
   });
 
   it("should return empty array when directory exists but is empty", async () => {
-    const emptyDir = join(testDir, "empty");
-    await mkdir(emptyDir, { recursive: true });
+    await withTempDir(async (emptyDir) => {
+      await mkdir(emptyDir, { recursive: true });
 
-    try {
       const configs = await scanMcpConfigs(emptyDir);
       expect(Array.isArray(configs)).toBe(true);
       expect(configs).toHaveLength(0);
-    } finally {
-      await rm(emptyDir, { recursive: true });
-    }
+    });
   });
 
   it("should return configs when directory exists and has valid config files", async () => {
-    const configDir = join(testDir, "configs");
-    await mkdir(configDir, { recursive: true });
+    await withTempDir(async (configDir) => {
+      await mkdir(configDir, { recursive: true });
 
-    // Create a valid config file
-    const configContent = JSON.stringify({
-      mcpServers: {
-        "test-server": {
-          command: "test-command",
-          args: ["--test"],
+      // Create a valid config file
+      const configContent = JSON.stringify({
+        mcpServers: {
+          "test-server": {
+            command: "test-command",
+            args: ["--test"],
+          },
         },
-      },
-    });
+      });
 
-    const configPath = join(configDir, "test.json");
-    await writeFile(configPath, configContent);
+      const configPath = join(configDir, "test.json");
+      await writeFile(configPath, configContent);
 
-    try {
       const configs = await scanMcpConfigs(configDir);
       expect(Array.isArray(configs)).toBe(true);
       expect(configs).toHaveLength(1);
       expect(configs[0]?.name).toBe("test");
       expect(configs[0]?.valid).toBe(true);
-    } finally {
-      await rm(configDir, { recursive: true });
-    }
+    });
   });
 
   it("MissingConfigDirectoryError properties", () => {
@@ -87,47 +78,46 @@ describe("MCP Scanner", () => {
 
   describe("Multiple Config Processing", () => {
     it("should discover and sort multiple valid configs", async () => {
-      const configDir = join(testDir, "multiple-valid");
-      await mkdir(configDir, { recursive: true });
+      await withTempDir(async (configDir) => {
+        await mkdir(configDir, { recursive: true });
 
-      // Create multiple valid configs with different names for sorting test
-      const configs = [
-        {
-          name: "zebra.json",
-          content: {
-            mcpServers: {
-              "zebra-server": {
-                command: "zebra-command",
-                args: ["--zebra"],
+        // Create multiple valid configs with different names for sorting test
+        const configs = [
+          {
+            name: "zebra.json",
+            content: {
+              mcpServers: {
+                "zebra-server": {
+                  command: "zebra-command",
+                  args: ["--zebra"],
+                },
               },
             },
           },
-        },
-        {
-          name: "alpha.json",
-          content: {
-            mcpServers: {
-              "alpha-server": {
-                command: "alpha-command",
-                args: ["--alpha"],
+          {
+            name: "alpha.json",
+            content: {
+              mcpServers: {
+                "alpha-server": {
+                  command: "alpha-command",
+                  args: ["--alpha"],
+                },
               },
             },
           },
-        },
-        {
-          name: "middle.json",
-          content: {
-            mcpServers: {
-              "middle-server": {
-                command: "middle-command",
-                args: ["--middle"],
+          {
+            name: "middle.json",
+            content: {
+              mcpServers: {
+                "middle-server": {
+                  command: "middle-command",
+                  args: ["--middle"],
+                },
               },
             },
           },
-        },
-      ];
+        ];
 
-      try {
         // Write all config files
         await Promise.all(
           configs.map(async (config) => {
@@ -153,9 +143,7 @@ describe("MCP Scanner", () => {
           expect(config.description).toBeTruthy();
           expect(config.path).toContain(configDir);
         });
-      } finally {
-        await rm(configDir, { recursive: true });
-      }
+      });
     });
 
     it("should handle multiple invalid configs with different errors", async () => {

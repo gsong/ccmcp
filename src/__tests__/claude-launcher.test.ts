@@ -2,6 +2,11 @@ import type { ChildProcess } from "node:child_process";
 import { execFileSync, spawn } from "node:child_process";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { McpConfig } from "../mcp-scanner.js";
+import {
+  asMockChildProcess,
+  createMockChildProcess,
+  waitForAsync,
+} from "./__helpers__/index.js";
 
 // Mock the child_process module
 vi.mock("node:child_process", () => ({
@@ -247,18 +252,8 @@ describe("Claude Code Launch Behavior", () => {
       vi.mocked(execFileSync).mockReturnValue("/usr/local/bin/claude");
 
       // Mock spawn to return a mock child process
-      const mockChild = {
-        on: vi.fn((event: string, callback: (...args: unknown[]) => void) => {
-          if (event === "exit") {
-            // Simulate successful exit
-            setImmediate(() => callback(0, null));
-          }
-          return mockChild;
-        }),
-        stdout: { on: vi.fn() },
-        stderr: { on: vi.fn() },
-      } as unknown as ChildProcess;
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      const mockChild = createMockChildProcess(0, null);
+      vi.mocked(spawn).mockReturnValue(asMockChildProcess(mockChild));
 
       // Import after mocking
       const { launchClaudeCode } = await import("../claude-launcher.js");
@@ -271,16 +266,7 @@ describe("Claude Code Launch Behavior", () => {
       launchClaudeCode({ selectedConfigs, passthroughArgs: [] });
 
       // Give async operations time to execute and handle expected exit
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          try {
-            resolve(undefined);
-          } catch {
-            // Expected - process.exit mock throws
-            resolve(undefined);
-          }
-        }, 50);
-      });
+      await waitForAsync(50);
 
       // Verify execFileSync was called correctly
       expect(execFileSync).toHaveBeenCalledWith("which", ["claude"], {
@@ -374,17 +360,8 @@ describe("Claude Code Launch Behavior", () => {
     it("should handle multiple configs and passthrough args", async () => {
       vi.mocked(execFileSync).mockReturnValue("/usr/local/bin/claude");
 
-      const mockChild = {
-        on: vi.fn((event: string, callback: (...args: unknown[]) => void) => {
-          if (event === "exit") {
-            setImmediate(() => callback(0, null));
-          }
-          return mockChild;
-        }),
-        stdout: { on: vi.fn() },
-        stderr: { on: vi.fn() },
-      } as unknown as ChildProcess;
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      const mockChild = createMockChildProcess(0, null);
+      vi.mocked(spawn).mockReturnValue(asMockChildProcess(mockChild));
 
       const { launchClaudeCode } = await import("../claude-launcher.js");
 
@@ -398,16 +375,7 @@ describe("Claude Code Launch Behavior", () => {
         passthroughArgs: ["--resume", "--verbose"],
       });
 
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          try {
-            resolve(undefined);
-          } catch {
-            // Expected - process.exit mock throws
-            resolve(undefined);
-          }
-        }, 50);
-      });
+      await waitForAsync(50);
 
       const spawnCall = vi.mocked(spawn).mock.calls[0];
       const command = spawnCall?.[1]?.[1];
