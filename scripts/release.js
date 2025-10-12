@@ -107,6 +107,7 @@ function confirmRelease(versionType, newVersion) {
   console.log("  3. Create and push git tag");
   console.log("  4. Build the project");
   console.log("  5. Publish to npm");
+  console.log("  6. Create GitHub release");
   console.log("=".repeat(60));
 
   // In a real interactive environment, you'd want to prompt for confirmation
@@ -169,6 +170,12 @@ function runRelease(versionType, newVersion) {
   // Step 8: Publish to npm
   exec("pnpm run npm-publish", "Publishing to npm");
 
+  // Step 9: Create GitHub release
+  exec(
+    `gh release create "${newVersion}" --title "${newVersion}" --notes-file .tmp-tag-notes.txt`,
+    "Creating GitHub release",
+  );
+
   console.log(`\n${"=".repeat(60)}`);
   console.log(`🎉 Release ${newVersion} completed successfully!`);
   console.log("=".repeat(60));
@@ -177,6 +184,7 @@ function runRelease(versionType, newVersion) {
   console.log("   • Pushed to remote repository");
   console.log("   • Built and published to npm");
   console.log("   • Release notes generated and added to CHANGELOG.md");
+  console.log("   • GitHub release created");
   console.log("=".repeat(60));
 }
 
