@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { type ExecSyncOptions, execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir, platform } from "node:os";
@@ -30,13 +30,15 @@ export function getCacheDir(): string {
   return join(homedir(), ".cache", "ccmcp");
 }
 
-export function getProjectDir(): string {
+export function getProjectDir(
+  executor: (cmd: string, opts: ExecSyncOptions) => string | Buffer = execSync,
+): string {
   try {
-    const gitRoot = execSync("git rev-parse --show-toplevel", {
+    const gitRoot = executor("git rev-parse --show-toplevel", {
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
-    }).trim();
-    return gitRoot;
+    }) as string;
+    return gitRoot.trim();
   } catch {
     return process.cwd();
   }

@@ -24,6 +24,34 @@ describe("getProjectDir", () => {
     expect(result).toBeTruthy();
     expect(typeof result).toBe("string");
   });
+
+  test("returns git root when git command succeeds", () => {
+    const mockExecutor = () => "/path/to/repo\n";
+    const result = getProjectDir(mockExecutor);
+    expect(result).toBe("/path/to/repo");
+  });
+
+  test("trims whitespace from git root", () => {
+    const mockExecutor = () => "  /path/to/repo  \n";
+    const result = getProjectDir(mockExecutor);
+    expect(result).toBe("/path/to/repo");
+  });
+
+  test("falls back to process.cwd() when git command fails", () => {
+    const mockExecutor = () => {
+      throw new Error("git command failed");
+    };
+    const result = getProjectDir(mockExecutor);
+    expect(result).toBe(process.cwd());
+  });
+
+  test("falls back to process.cwd() when executor throws any error", () => {
+    const mockExecutor = () => {
+      throw new Error("not a git repository");
+    };
+    const result = getProjectDir(mockExecutor);
+    expect(result).toBe(process.cwd());
+  });
 });
 
 describe("loadSelections and saveSelections", () => {

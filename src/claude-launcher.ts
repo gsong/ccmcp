@@ -8,10 +8,10 @@ export interface LaunchOptions {
   passthroughArgs: string[];
 }
 
-export async function launchClaudeCode({
-  selectedConfigs,
-  passthroughArgs,
-}: LaunchOptions): Promise<number> {
+export async function launchClaudeCode(
+  { selectedConfigs, passthroughArgs }: LaunchOptions,
+  execFile: typeof execFileSync = execFileSync,
+): Promise<number> {
   const args: string[] = [];
 
   // Add MCP config flags for each selected config
@@ -25,7 +25,7 @@ export async function launchClaudeCode({
   // Replace the current process with Claude Code using exec syscall
   try {
     // Find the claude executable path
-    const claudePath = execFileSync("which", ["claude"], {
+    const claudePath = execFile("which", ["claude"], {
       encoding: "utf8",
       stdio: "pipe",
     }).trim();

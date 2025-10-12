@@ -246,6 +246,86 @@ describe("Claude Code Launch Behavior", () => {
     });
   });
 
+  describe("Dependency Injection Tests", () => {
+    it("should use injected execFile function", async () => {
+      const mockExecFile = vi
+        .fn()
+        .mockReturnValue(
+          "/custom/path/to/claude",
+        ) as unknown as typeof execFileSync;
+      const mockChild = createMockChildProcess(0, null);
+      vi.mocked(spawn).mockReturnValue(asMockChildProcess(mockChild));
+
+      const { launchClaudeCode } = await import("../claude-launcher.js");
+
+      const selectedConfigs: McpConfig[] = [
+        { name: "test-config", path: "/path/to/config.json", valid: true },
+      ];
+
+      launchClaudeCode({ selectedConfigs, passthroughArgs: [] }, mockExecFile);
+
+      await waitForAsync(50);
+
+      expect(mockExecFile).toHaveBeenCalledWith("which", ["claude"], {
+        encoding: "utf8",
+        stdio: "pipe",
+      });
+
+      const spawnCall = vi.mocked(spawn).mock.calls[0];
+      const command = spawnCall?.[1]?.[1];
+      expect(command).toContain("exec /custom/path/to/claude");
+    });
+
+    it("should handle command not found error with injected execFile", async () => {
+      const mockExecFile = vi.fn().mockImplementation(() => {
+        const error = new Error("Command failed: which claude") as Error & {
+          status: number;
+        };
+        error.status = 1;
+        throw error;
+      }) as unknown as typeof execFileSync;
+
+      const { launchClaudeCode } = await import("../claude-launcher.js");
+
+      const selectedConfigs: McpConfig[] = [
+        { name: "test-config", path: "/path/to/config.json", valid: true },
+      ];
+
+      const result = await launchClaudeCode(
+        { selectedConfigs, passthroughArgs: [] },
+        mockExecFile,
+      );
+
+      expect(result).toBe(1);
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        "Error: 'claude' command not found. Please ensure Claude Code is installed and in your PATH.",
+      );
+      expect(mockExecFile).toHaveBeenCalled();
+      expect(spawn).not.toHaveBeenCalled();
+    });
+
+    it("should use default execFileSync when no executor is provided", async () => {
+      vi.mocked(execFileSync).mockReturnValue("/usr/local/bin/claude");
+      const mockChild = createMockChildProcess(0, null);
+      vi.mocked(spawn).mockReturnValue(asMockChildProcess(mockChild));
+
+      const { launchClaudeCode } = await import("../claude-launcher.js");
+
+      const selectedConfigs: McpConfig[] = [
+        { name: "test-config", path: "/path/to/config.json", valid: true },
+      ];
+
+      launchClaudeCode({ selectedConfigs, passthroughArgs: [] });
+
+      await waitForAsync(50);
+
+      expect(execFileSync).toHaveBeenCalledWith("which", ["claude"], {
+        encoding: "utf8",
+        stdio: "pipe",
+      });
+    });
+  });
+
   describe("Integration Tests with Module Mocking", () => {
     it("should call execFileSync and spawn with correct arguments", async () => {
       // Mock execFileSync to return claude path
