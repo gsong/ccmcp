@@ -9,8 +9,11 @@ import {
 import { formatConfigDisplayName, formatErrorMessage } from "./utils.js";
 
 export class MissingConfigDirectoryError extends Error {
-  constructor(public readonly directoryPath: string) {
+  readonly directoryPath: string;
+
+  constructor(directoryPath: string) {
     super(`Config directory not found: ${directoryPath}`);
+    this.directoryPath = directoryPath;
     this.name = "MissingConfigDirectoryError";
   }
 }

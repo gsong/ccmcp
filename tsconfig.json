@@ -11,6 +11,7 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
     "noEmit": true,
 
     // JSX support for Ink components
@@ -23,6 +24,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
+    "erasableSyntaxOnly": true,
 
     // Some stricter flags
     "noUnusedLocals": true,
