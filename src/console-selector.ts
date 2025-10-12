@@ -1,4 +1,7 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { createInterface } from "node:readline";
+import { fileURLToPath } from "node:url";
 import { render } from "ink";
 import React from "react";
 import type { McpConfig } from "./mcp-scanner.js";
@@ -36,12 +39,20 @@ export async function selectConfigs(
 
   // Use Ink TUI if we're in a TTY environment
   if (isTTY()) {
+    // Read version from package.json
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const packageJson = JSON.parse(
+      readFileSync(join(__dirname, "../package.json"), "utf8"),
+    );
+    const version = packageJson.version as string;
+
     return new Promise<McpConfig[]>((resolve) => {
       const { waitUntilExit } = render(
         React.createElement(ConfigSelector, {
           configs,
           configDir,
           previouslySelected,
+          version,
           onSelect: (selectedConfigs: McpConfig[]) => {
             // Wait for TUI to fully exit before resolving
             waitUntilExit().then(() => {

@@ -10,6 +10,7 @@ interface ConfigSelectorProps {
   onSelect: (selectedConfigs: McpConfig[]) => void;
   configDir: string;
   previouslySelected?: Set<string>;
+  version?: string;
 }
 
 export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
@@ -17,6 +18,7 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
   onSelect,
   configDir,
   previouslySelected = new Set(),
+  version,
 }) => {
   const { exit } = useApp();
   const validConfigs = configs.filter((config) => config.valid);
@@ -161,7 +163,9 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
     <Box flexDirection="column" height="100%">
       {/* Header */}
       <Box flexDirection="column" marginBottom={1}>
-        <Text bold>Available MCP Configs</Text>
+        <Text bold>
+          Available MCP Configs{version && ` - ccmcp v${version}`}
+        </Text>
         <Text>
           Use ↑/↓ to navigate, Space to select/deselect, Enter to confirm
         </Text>
