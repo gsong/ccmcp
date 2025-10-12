@@ -38,7 +38,7 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "fix": "run-s lint:fix format format:other type-check",
-    "compile": "tsc",
+    "compile": "tsup",
     "build": "run-s lint type-check compile",
     "git-tag": "git tag \"v$(node -p \"require('./package.json').version\")\"",
     "git-push-tag": "git push origin \"v$(node -p \"require('./package.json').version\")\"",
@@ -60,6 +60,7 @@
     "ink-testing-library": "^4.0.0",
     "npm-run-all2": "^8.0.4",
     "prettier": "^3.6.2",
+    "tsup": "^8.5.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"

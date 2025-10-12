@@ -11,11 +11,7 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "noEmit": false,
-    "outDir": "dist",
-    "rootDir": "src",
-    "declaration": true,
-    "sourceMap": false,
+    "noEmit": true,
 
     // JSX support for Ink components
     "jsx": "react-jsx",
