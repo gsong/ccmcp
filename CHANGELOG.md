@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.6.0] - 2025-10-12
+
+### Features
+
+- Display version number in TUI header
+- Add GitHub release creation to release script
+
+### Bug Fixes
+
+- Replace manual shell escaping with shell-quote library for safer command execution
+
+### Improvements
+
+- Apply minor code quality improvements
+- Add TypeScript erasableSyntaxOnly and verbatimModuleSyntax flags
+- Add dependency injection for better testability
+- Centralize process.exit() handling for better testability
+- Extract package version reading to shared utility
+- Optimize bundle size with tsup
+
 ## [v0.5.0] - 2025-10-12
 
 ### Features
