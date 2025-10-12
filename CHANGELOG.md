@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.5.0] - 2025-10-12
+
+### Features
+
+- Remember user's last MCP config selections per project
+- Display config labels at full width by default
+- Add reusable test helper infrastructure
+- Add project specifications
+
+### Bug Fixes
+
+- Handle missing config directory per specification
+- Restore vi.resetModules() call in config selection UI tests
+- Replace non-null assertions with proper type narrowing in tests
+
+### Improvements
+
+- Remove 24 biome-ignore suppressions by improving test helper types
+- Migrate claude-launcher tests to Vitest with improved mocking
+- Adopt test helpers across multiple test files
+- Remove unused replaceProcess option from claude-launcher
+- Expand test coverage for ConfigSelector, mcp-scanner, and Claude Code launch behavior
+
 ## [v0.4.0] - 2025-09-24
 
 ### Features
