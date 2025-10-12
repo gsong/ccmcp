@@ -9,12 +9,20 @@ import { launchClaudeCode } from "./claude-launcher.js";
 import { selectConfigs } from "./console-selector.js";
 import type { McpConfig } from "./mcp-scanner.js";
 import { MissingConfigDirectoryError, scanMcpConfigs } from "./mcp-scanner.js";
+import {
+  clearCache,
+  getProjectDir,
+  loadSelections,
+  saveSelections,
+} from "./selection-cache.js";
 import { formatErrorMessage } from "./utils.js";
 
 interface CliArgs {
   help?: boolean;
   version?: boolean;
   "config-dir"?: string;
+  "ignore-cache"?: boolean;
+  "clear-cache"?: boolean;
 }
 
 export function showHelp(): void {
@@ -32,6 +40,8 @@ Options:
   -h, --help              Show this help message
   -v, --version           Show version information
   -c, --config-dir <dir>  Specify MCP config directory (default: ~/.claude/mcp-configs)
+  --ignore-cache          Skip loading previously selected configs
+  --clear-cache           Clear all cached selections and exit
 
 Environment Variables:
   CCMCP_CONFIG_DIR  Alternative to --config-dir option
@@ -50,11 +60,10 @@ export function showVersion(): void {
 
 async function runSelector(
   configs: McpConfig[],
-  passthroughArgs: string[],
   configDir: string,
-): Promise<number> {
-  const selectedConfigs = await selectConfigs(configs, configDir);
-  return await launchClaudeCode({ selectedConfigs, passthroughArgs });
+  previouslySelected: Set<string>,
+): Promise<McpConfig[]> {
+  return await selectConfigs(configs, configDir, previouslySelected);
 }
 
 export function validateConfigDir(configDir: string): void {
@@ -76,6 +85,8 @@ export function parseCliArgs(): { values: CliArgs; positionals: string[] } {
     "--version",
     "-c",
     "--config-dir",
+    "--ignore-cache",
+    "--clear-cache",
   ]);
 
   const ccmcpArgs: string[] = [];
@@ -107,6 +118,8 @@ export function parseCliArgs(): { values: CliArgs; positionals: string[] } {
       help: { type: "boolean", short: "h" },
       version: { type: "boolean", short: "v" },
       "config-dir": { type: "string", short: "c" },
+      "ignore-cache": { type: "boolean" },
+      "clear-cache": { type: "boolean" },
     },
     allowPositionals: false,
     strict: true,
@@ -132,6 +145,12 @@ export async function main(): Promise<void> {
     process.exit(0);
   }
 
+  if (values["clear-cache"]) {
+    await clearCache();
+    console.log("Cache cleared successfully");
+    process.exit(0);
+  }
+
   try {
     // Determine config directory with precedence: CLI > env > default
     const configDir = values["config-dir"] || process.env.CCMCP_CONFIG_DIR;
@@ -148,7 +167,26 @@ export async function main(): Promise<void> {
       process.exit(exitCode);
     }
 
-    const exitCode = await runSelector(configs, positionals, resolvedConfigDir);
+    // Load previously selected configs unless --ignore-cache is set
+    const projectDir = getProjectDir();
+    const previouslySelected = values["ignore-cache"]
+      ? new Set<string>()
+      : await loadSelections(projectDir, resolvedConfigDir);
+
+    const selectedConfigs = await runSelector(
+      configs,
+      resolvedConfigDir,
+      previouslySelected,
+    );
+
+    // Save selections for next time
+    const selectedNames = selectedConfigs.map((c) => c.name);
+    await saveSelections(projectDir, resolvedConfigDir, selectedNames);
+
+    const exitCode = await launchClaudeCode({
+      selectedConfigs,
+      passthroughArgs: positionals,
+    });
     process.exit(exitCode);
   } catch (error: unknown) {
     if (error instanceof MissingConfigDirectoryError) {

@@ -9,20 +9,28 @@ interface ConfigSelectorProps {
   configs: McpConfig[];
   onSelect: (selectedConfigs: McpConfig[]) => void;
   configDir: string;
+  previouslySelected?: Set<string>;
 }
 
 export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
   configs,
   onSelect,
   configDir,
+  previouslySelected = new Set(),
 }) => {
   const { exit } = useApp();
   const validConfigs = configs.filter((config) => config.valid);
   const invalidConfigs = configs.filter((config) => !config.valid);
 
-  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(
-    new Set(),
-  );
+  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(() => {
+    const indices = new Set<number>();
+    validConfigs.forEach((config, index) => {
+      if (previouslySelected.has(config.name)) {
+        indices.add(index);
+      }
+    });
+    return indices;
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showingPreview, setShowingPreview] = useState(false);
   const [showingInvalidConfigs, setShowingInvalidConfigs] = useState(false);
@@ -118,17 +126,21 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
     (config: McpConfig, index: number) => {
       const isSelected = selectedIndices.has(index);
       const isCurrent = index === currentIndex;
+      const wasPreviouslySelected = previouslySelected.has(config.name);
       const checkbox = isSelected ? "[x]" : "[ ]";
 
       return (
         <Box key={config.path}>
           <Text inverse={isCurrent} bold={isCurrent}>
             {checkbox} {config.description}
+            {wasPreviouslySelected && (
+              <Text dimColor> (previously selected)</Text>
+            )}
           </Text>
         </Box>
       );
     },
-    [selectedIndices, currentIndex],
+    [selectedIndices, currentIndex, previouslySelected],
   );
 
   if (validConfigs.length === 0) {

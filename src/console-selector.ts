@@ -25,6 +25,7 @@ function isTTY(): boolean {
 export async function selectConfigs(
   configs: McpConfig[],
   configDir: string,
+  previouslySelected: Set<string> = new Set(),
 ): Promise<McpConfig[]> {
   if (configs.length === 0) {
     console.log(
@@ -40,6 +41,7 @@ export async function selectConfigs(
         React.createElement(ConfigSelector, {
           configs,
           configDir,
+          previouslySelected,
           onSelect: (selectedConfigs: McpConfig[]) => {
             // Wait for TUI to fully exit before resolving
             waitUntilExit().then(() => {
@@ -52,12 +54,13 @@ export async function selectConfigs(
   }
 
   // Fallback to readline interface for non-TTY environments
-  return selectConfigsReadline(configs, configDir);
+  return selectConfigsReadline(configs, configDir, previouslySelected);
 }
 
 async function selectConfigsReadline(
   configs: McpConfig[],
   _configDir: string,
+  previouslySelected: Set<string> = new Set(),
 ): Promise<McpConfig[]> {
   console.log("\nAvailable MCP configs:");
   console.log("======================");
@@ -67,7 +70,9 @@ async function selectConfigsReadline(
 
   // Show valid configs
   validConfigs.forEach((config, index) => {
-    console.log(`${index + 1}. ${config.description}`);
+    const wasPreviouslySelected = previouslySelected.has(config.name);
+    const indicator = wasPreviouslySelected ? " (previously selected)" : "";
+    console.log(`${index + 1}. ${config.description}${indicator}`);
   });
 
   // Show invalid configs
@@ -90,13 +95,26 @@ async function selectConfigsReadline(
   console.log(
     "\nEnter config numbers to select (comma-separated, e.g., '1,3,5'):",
   );
-  console.log("Press Enter with no input to launch without any configs:");
+  if (previouslySelected.size > 0) {
+    console.log("Press Enter with no input to use previous selection:");
+  } else {
+    console.log("Press Enter with no input to launch without any configs:");
+  }
   console.log("Type 'all' to select all valid configs:");
 
   const input = await readInput("> ");
   const trimmed = input.trim();
 
-  if (trimmed === "" || trimmed.toLowerCase() === "none") {
+  if (trimmed === "") {
+    if (previouslySelected.size > 0) {
+      return validConfigs.filter((config) =>
+        previouslySelected.has(config.name),
+      );
+    }
+    return [];
+  }
+
+  if (trimmed.toLowerCase() === "none") {
     return [];
   }
 
