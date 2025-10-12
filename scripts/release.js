@@ -108,6 +108,7 @@ function confirmRelease(versionType, newVersion) {
   console.log("  4. Build the project");
   console.log("  5. Publish to npm");
   console.log("  6. Create GitHub release");
+  console.log("  7. Clean up temporary files");
   console.log("=".repeat(60));
 
   // In a real interactive environment, you'd want to prompt for confirmation
@@ -139,7 +140,7 @@ function runRelease(versionType, newVersion) {
 
   // Step 1: Generate release notes
   exec(
-    `pnpm run generate-release-notes ${newVersion}`,
+    `pnpm run _release:generate-notes ${newVersion}`,
     "Generating release notes",
   );
 
@@ -158,23 +159,23 @@ function runRelease(versionType, newVersion) {
     "Creating git tag with release notes",
   );
 
-  // Step 5: Clean up temporary files
-  exec("pnpm run clean-release-files", "Cleaning up temporary files");
-
-  // Step 6: Push changes and tags
+  // Step 5: Push changes and tags
   exec("git push --follow-tags", "Pushing changes and tags to remote");
 
-  // Step 7: Build project
+  // Step 6: Build project
   exec("pnpm run build", "Building project");
 
-  // Step 8: Publish to npm
-  exec("pnpm run npm-publish", "Publishing to npm");
+  // Step 7: Publish to npm
+  exec("pnpm run _publish:npm", "Publishing to npm");
 
-  // Step 9: Create GitHub release
+  // Step 8: Create GitHub release (before cleaning up temp files)
   exec(
     `gh release create "${newVersion}" --title "${newVersion}" --notes-file .tmp-tag-notes.txt`,
     "Creating GitHub release",
   );
+
+  // Step 9: Clean up temporary files (after GitHub release)
+  exec("pnpm run _release:clean-files", "Cleaning up temporary files");
 
   console.log(`\n${"=".repeat(60)}`);
   console.log(`🎉 Release ${newVersion} completed successfully!`);
