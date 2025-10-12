@@ -80,7 +80,8 @@ export const ConfigPreview: React.FC<ConfigPreviewProps> = ({
             .split("\n")
             .slice(0, height - 3)
             .map((line, index) => (
-              <Text key={`line-${index}-${line.slice(0, 10)}`} wrap="truncate">
+              // biome-ignore lint/suspicious/noArrayIndexKey: static file content that won't reorder
+              <Text key={`preview-line-${index}`} wrap="truncate">
                 {line.length > width - 4
                   ? `${line.slice(0, width - 7)}...`
                   : line}

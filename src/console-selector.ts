@@ -141,9 +141,9 @@ async function selectConfigsReadline(
     }
 
     const uniqueIndexes = [...new Set(selectedIndexes)];
-    return uniqueIndexes
-      .map((i) => validConfigs[i])
-      .filter((config): config is McpConfig => config !== undefined);
+    // All indexes are guaranteed to be valid by the filter at line 136
+    // biome-ignore lint/style/noNonNullAssertion: bounds check at line 136 guarantees valid indexes
+    return uniqueIndexes.map((i) => validConfigs[i]!);
   } catch (_error: unknown) {
     console.log("Invalid input. Launching without configs...");
     return [];

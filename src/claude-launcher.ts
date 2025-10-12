@@ -63,8 +63,17 @@ export async function launchClaudeCode(
       process.exit(1);
     });
 
-    // This function should not return since we're replacing the process
-    return new Promise<number>(() => {});
+    /**
+     * Returns a Promise that never resolves because we're replacing the current
+     * process with Claude Code via spawn/exec. The process will exit via the 'exit'
+     * or 'error' event handlers above (lines 52-64), not by resolving this Promise.
+     *
+     * The return type Promise<number> is maintained for API compatibility, but
+     * in practice this function terminates the process before returning.
+     */
+    return new Promise<number>(() => {
+      // Intentionally never resolves - process exits via event handlers
+    });
   } catch (error: unknown) {
     const errorWithStatus = error as { status?: number; message?: string };
     const isCommandNotFound =
