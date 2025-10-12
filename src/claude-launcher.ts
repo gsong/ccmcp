@@ -1,4 +1,5 @@
 import { execFileSync, spawn } from "node:child_process";
+import { quote } from "shell-quote";
 import type { McpConfig } from "./mcp-scanner.js";
 import { formatErrorMessage } from "./utils.js";
 
@@ -35,12 +36,8 @@ export async function launchClaudeCode({
     process.stdout.write("");
     process.stderr.write("");
 
-    // Build command with proper shell escaping
-    const escapeShellArg = (arg: string): string => {
-      return `"${arg.replace(/[\\"$`]/g, "\\$&")}"`;
-    };
-    const escapedArgs = args.map(escapeShellArg);
-    const command = `exec "${claudePath.replace(/[\\"$`]/g, "\\$&")}" ${escapedArgs.join(" ")}`;
+    // Build command with proper shell escaping using shell-quote
+    const command = `exec ${quote([claudePath, ...args])}`;
 
     // Use Node.js spawn with exec for true process replacement
     // This provides better terminal control and keyboard input handling
