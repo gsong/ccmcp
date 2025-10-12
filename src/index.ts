@@ -126,23 +126,23 @@ export function parseCliArgs(): { values: CliArgs; positionals: string[] } {
   return { values: result.values, positionals: passthroughArgs };
 }
 
-export async function main(): Promise<void> {
+export async function main(): Promise<number> {
   const { values, positionals } = parseCliArgs();
 
   if (values.help) {
     showHelp();
-    process.exit(0);
+    return 0;
   }
 
   if (values.version) {
     showVersion();
-    process.exit(0);
+    return 0;
   }
 
   if (values["clear-cache"]) {
     await clearCache();
     console.log("Cache cleared successfully");
-    process.exit(0);
+    return 0;
   }
 
   try {
@@ -158,7 +158,7 @@ export async function main(): Promise<void> {
         selectedConfigs: [],
         passthroughArgs: positionals,
       });
-      process.exit(exitCode);
+      return exitCode;
     }
 
     // Load previously selected configs unless --ignore-cache is set
@@ -181,17 +181,19 @@ export async function main(): Promise<void> {
       selectedConfigs,
       passthroughArgs: positionals,
     });
-    process.exit(exitCode);
+    return exitCode;
   } catch (error: unknown) {
     if (error instanceof MissingConfigDirectoryError) {
       console.error(`Error: ${error.message}`);
-      process.exit(1);
+      return 1;
     }
     console.error(`Error: ${formatErrorMessage(error)}`);
-    process.exit(1);
+    return 1;
   }
 }
 
 if (import.meta.main) {
-  main();
+  main().then((exitCode) => {
+    process.exit(exitCode);
+  });
 }

@@ -46,6 +46,9 @@ export async function launchClaudeCode({
     });
 
     // Exit with the same code as Claude Code
+    // NOTE: process.exit() is intentionally used here because we're in the context
+    // of process replacement. These event handlers must terminate the parent process
+    // after the spawned Claude Code process completes or fails.
     proc.on("exit", (code, signal) => {
       if (signal) {
         process.kill(process.pid, signal);
