@@ -277,7 +277,7 @@ describe("Claude Code Launch Behavior", () => {
       // Verify spawn was called correctly
       expect(spawn).toHaveBeenCalledWith(
         "sh",
-        ["-c", expect.stringContaining('exec "/usr/local/bin/claude"')],
+        ["-c", expect.stringContaining("exec /usr/local/bin/claude")],
         {
           stdio: "inherit",
         },
@@ -286,8 +286,8 @@ describe("Claude Code Launch Behavior", () => {
       // Verify the command contains correct arguments
       const spawnCall = vi.mocked(spawn).mock.calls[0];
       const command = spawnCall?.[1]?.[1];
-      expect(command).toContain('exec "/usr/local/bin/claude"');
-      expect(command).toContain('"--mcp-config" "/path/to/config.json"');
+      expect(command).toContain("exec /usr/local/bin/claude");
+      expect(command).toContain("--mcp-config /path/to/config.json");
       expect(typeof command).toBe("string");
 
       // Verify console.log was called
@@ -381,10 +381,10 @@ describe("Claude Code Launch Behavior", () => {
       const command = spawnCall?.[1]?.[1];
 
       if (typeof command === "string") {
-        expect(command).toContain('"--mcp-config" "/path/to/config1.json"');
-        expect(command).toContain('"--mcp-config" "/path/to/config2.json"');
-        expect(command).toContain('"--resume"');
-        expect(command).toContain('"--verbose"');
+        expect(command).toContain("--mcp-config /path/to/config1.json");
+        expect(command).toContain("--mcp-config /path/to/config2.json");
+        expect(command).toContain("--resume");
+        expect(command).toContain("--verbose");
       } else {
         throw new Error("Command should be a string");
       }
