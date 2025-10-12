@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 
-import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { launchClaudeCode } from "./claude-launcher.js";
 import { selectConfigs } from "./console-selector.js";
@@ -15,7 +13,7 @@ import {
   loadSelections,
   saveSelections,
 } from "./selection-cache.js";
-import { formatErrorMessage } from "./utils.js";
+import { formatErrorMessage, getPackageVersion } from "./utils.js";
 
 interface CliArgs {
   help?: boolean;
@@ -51,11 +49,7 @@ Any additional arguments are passed through to Claude Code.
 }
 
 export function showVersion(): void {
-  const __dirname = dirname(fileURLToPath(import.meta.url));
-  const packageJson = JSON.parse(
-    readFileSync(join(__dirname, "../package.json"), "utf8"),
-  );
-  console.log(`ccmcp v${packageJson.version}`);
+  console.log(`ccmcp v${getPackageVersion()}`);
 }
 
 async function runSelector(

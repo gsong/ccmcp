@@ -1,11 +1,9 @@
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
 import { createInterface } from "node:readline";
-import { fileURLToPath } from "node:url";
 import { render } from "ink";
 import React from "react";
 import type { McpConfig } from "./mcp-scanner.js";
 import { ConfigSelector } from "./tui/index.js";
+import { getPackageVersion } from "./utils.js";
 
 function createSignalCleanup(cleanup: () => void): () => void {
   const signals: NodeJS.Signals[] = ["SIGINT", "SIGTERM"];
@@ -39,12 +37,7 @@ export async function selectConfigs(
 
   // Use Ink TUI if we're in a TTY environment
   if (isTTY()) {
-    // Read version from package.json
-    const __dirname = dirname(fileURLToPath(import.meta.url));
-    const packageJson = JSON.parse(
-      readFileSync(join(__dirname, "../package.json"), "utf8"),
-    );
-    const version = packageJson.version as string;
+    const version = getPackageVersion();
 
     return new Promise<McpConfig[]>((resolve) => {
       const { waitUntilExit } = render(
