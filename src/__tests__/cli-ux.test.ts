@@ -161,12 +161,12 @@ describe("CLI User Experience", () => {
       const originalArgv = process.argv;
 
       try {
-        process.argv = ["node", "ccmcp", "--resume", "--verbose"];
+        process.argv = ["node", "ccmcp", "--resume", "--debug"];
 
         const { parseCliArgs } = await import("../index.js");
         const result = parseCliArgs();
 
-        expect(result.positionals).toEqual(["--resume", "--verbose"]);
+        expect(result.positionals).toEqual(["--resume", "--debug"]);
       } finally {
         process.argv = originalArgv;
       }
@@ -176,20 +176,13 @@ describe("CLI User Experience", () => {
       const originalArgv = process.argv;
 
       try {
-        process.argv = [
-          "node",
-          "ccmcp",
-          "-c",
-          "/path",
-          "--resume",
-          "--verbose",
-        ];
+        process.argv = ["node", "ccmcp", "-c", "/path", "--resume", "--debug"];
 
         const { parseCliArgs } = await import("../index.js");
         const result = parseCliArgs();
 
         expect(result.values["config-dir"]).toBe("/path");
-        expect(result.positionals).toEqual(["--resume", "--verbose"]);
+        expect(result.positionals).toEqual(["--resume", "--debug"]);
       } finally {
         process.argv = originalArgv;
       }

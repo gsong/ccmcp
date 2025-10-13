@@ -4,6 +4,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { launchClaudeCode } from "./claude-launcher.js";
+import { cleanupCache } from "./cleanup.js";
 import { selectConfigs } from "./console-selector.js";
 import type { McpConfig } from "./mcp-scanner.js";
 import { MissingConfigDirectoryError, scanMcpConfigs } from "./mcp-scanner.js";
@@ -21,6 +22,10 @@ interface CliArgs {
   "config-dir"?: string;
   "ignore-cache"?: boolean;
   "clear-cache"?: boolean;
+  cleanup?: boolean;
+  "dry-run"?: boolean;
+  yes?: boolean;
+  verbose?: boolean;
 }
 
 export function showHelp(): void {
@@ -29,6 +34,7 @@ ccmcp - Claude Code MCP Selector CLI
 
 Usage:
   ccmcp [options] [claude-options...]
+  ccmcp cleanup [options]
 
 Description:
   Discovers MCP server configs, lets you select them via TUI,
@@ -40,6 +46,12 @@ Options:
   -c, --config-dir <dir>  Specify MCP config directory (default: ~/.claude/mcp-configs)
   --ignore-cache          Skip loading previously selected configs
   --clear-cache           Clear all cached selections and exit
+
+Cleanup Command:
+  cleanup                 Remove stale cache entries and broken symlinks
+    --dry-run             Preview what would be cleaned without making changes
+    --yes                 Skip all prompts and automatically proceed
+    --verbose             Show detailed information about cleanup process
 
 Environment Variables:
   CCMCP_CONFIG_DIR  Alternative to --config-dir option
@@ -81,6 +93,10 @@ export function parseCliArgs(): { values: CliArgs; positionals: string[] } {
     "--config-dir",
     "--ignore-cache",
     "--clear-cache",
+    "--cleanup",
+    "--dry-run",
+    "--yes",
+    "--verbose",
   ]);
 
   const ccmcpArgs: string[] = [];
@@ -89,6 +105,11 @@ export function parseCliArgs(): { values: CliArgs; positionals: string[] } {
   for (let i = 0; i < rawArgs.length; i++) {
     const arg = rawArgs[i];
     if (!arg) continue;
+
+    if (arg === "cleanup") {
+      ccmcpArgs.push("--cleanup");
+      continue;
+    }
 
     if (ccmcpFlags.has(arg)) {
       ccmcpArgs.push(arg);
@@ -114,6 +135,10 @@ export function parseCliArgs(): { values: CliArgs; positionals: string[] } {
       "config-dir": { type: "string", short: "c" },
       "ignore-cache": { type: "boolean" },
       "clear-cache": { type: "boolean" },
+      cleanup: { type: "boolean" },
+      "dry-run": { type: "boolean" },
+      yes: { type: "boolean" },
+      verbose: { type: "boolean" },
     },
     allowPositionals: false,
     strict: true,
@@ -142,6 +167,39 @@ export async function main(): Promise<number> {
   if (values["clear-cache"]) {
     await clearCache();
     console.log("Cache cleared successfully");
+    return 0;
+  }
+
+  if (values.cleanup) {
+    const configDir = values["config-dir"] || process.env.CCMCP_CONFIG_DIR;
+    const resolvedConfigDir =
+      configDir || join(homedir(), ".claude", "mcp-configs");
+
+    const result = await cleanupCache({
+      configDir: resolvedConfigDir,
+      dryRun: values["dry-run"],
+      yes: values.yes,
+      verbose: values.verbose,
+    });
+
+    console.log("\nCleanup Summary:");
+    console.log(`  Stale cache entries removed: ${result.staleCacheEntries}`);
+    console.log(
+      `  Invalid server references removed: ${result.invalidServerReferences}`,
+    );
+    console.log(`  Broken symlinks removed: ${result.brokenSymlinks}`);
+    console.log(
+      `  Cache files: ${result.totalCacheFilesBefore} → ${result.totalCacheFilesAfter}`,
+    );
+
+    if (result.errors.length > 0) {
+      console.log("\nErrors:");
+      for (const error of result.errors) {
+        console.log(`  - ${error}`);
+      }
+      return 1;
+    }
+
     return 0;
   }
 
