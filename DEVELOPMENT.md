@@ -7,7 +7,7 @@ This document contains information for developers working on ccmcp.
 ### Prerequisites
 
 - Node.js 18+
-- pnpm (package manager)
+- pnpm 10.17.0+ (package manager)
 - Claude Code installed and available in PATH
 - Terminal with TTY support for TUI testing
 
@@ -35,11 +35,11 @@ pnpm run dev
 pnpm run dev -- --config-dir ./test-configs
 pnpm run dev -- -c /path/to/configs
 
+# Test cleanup command
+pnpm run dev -- cleanup --dry-run --verbose
+
 # Build for production
 pnpm run build
-
-# Clean build artifacts
-pnpm run clean
 ```
 
 ### Code Quality
@@ -51,54 +51,26 @@ pnpm run lint
 # Fix linting issues automatically
 pnpm run lint:fix
 
-# Format code with Biome
+# Format code (Biome for TypeScript/JavaScript, Prettier for other files)
 pnpm run format
-
-# Format other files (markdown, JSON, YAML) with Prettier
-pnpm run format:other
 
 # Run type checking
 pnpm run type-check
 
-# Run tests
+# Run tests (Vitest)
 pnpm test
 
-# Run all fixes and checks
+# Run all fixes and checks (lint:fix, format, type-check)
 pnpm run fix
 ```
 
 ### Release Management
 
 ```bash
-# Generate release notes
-pnpm run generate-release-notes
-
-# Clean temporary release files
-pnpm run clean-release-files
-
 # Release with version bumps (includes build, tag, and publish)
-pnpm run release:patch    # 0.2.0 -> 0.2.1
-pnpm run release:minor    # 0.2.0 -> 0.3.0
-pnpm run release:major    # 0.2.0 -> 1.0.0
-
-# Dry run release process
-pnpm run publish:dry-run
-```
-
-### Manual Publishing
-
-```bash
-# Create git tag
-pnpm run git-tag
-
-# Push git tag
-pnpm run git-push-tag
-
-# Publish to npm
-pnpm run npm-publish
-
-# Full manual publish process
-pnpm run publish:npm
+pnpm run release:patch    # 1.0.0 -> 1.0.1
+pnpm run release:minor    # 1.0.0 -> 1.1.0
+pnpm run release:major    # 1.0.0 -> 2.0.0
 ```
 
 ## Project Architecture
@@ -111,12 +83,16 @@ src/
 ├── mcp-scanner.ts     # MCP config discovery and validation logic
 ├── console-selector.ts # Terminal selection logic with TUI/fallback handling
 ├── claude-launcher.ts # Claude Code process management and execution
+├── cleanup.ts        # Cleanup command for stale cache and broken symlinks
+├── selection-cache.ts # Cache management for persisting config selections per project
 ├── utils.ts          # Shared utility functions for error formatting
 ├── schemas/          # Configuration validation schemas
 │   └── mcp-config.ts # Zod schema for MCP configuration validation
 ├── __tests__/        # Test suite
 │   ├── mcp-config-schema.test.ts # Schema validation tests
-│   └── utils.test.ts # Utility function tests
+│   ├── utils.test.ts # Utility function tests
+│   ├── cleanup.test.ts # Cleanup command tests
+│   └── selection-cache.test.ts # Cache management tests
 └── tui/              # React/Ink TUI components
     ├── index.ts      # TUI component exports
     ├── ConfigSelector.tsx    # Main TUI config selection interface
@@ -130,22 +106,24 @@ scripts/
 
 ### Key Components
 
-- **CLI Entry (`index.ts`)**: Handles argument parsing, help/version display, config directory resolution, and orchestrates the main flow
+- **CLI Entry (`index.ts`)**: Handles argument parsing, help/version display, config directory resolution, and orchestrates the main flow including cleanup command
 - **MCP Scanner (`mcp-scanner.ts`)**: Discovers and validates MCP configuration files using comprehensive schema validation
 - **Schema Validation (`schemas/mcp-config.ts`)**: Zod-based schemas for validating MCP config structure with detailed error messages, supporting both modern and legacy formats (type field optional, defaults to "stdio")
-- **Test Suite (`__tests__/`)**: Comprehensive unit tests for schema validation covering valid/invalid configurations
+- **Selection Cache (`selection-cache.ts`)**: Manages persistent caching of config selections per project directory, with support for XDG cache directories on Linux/macOS and AppData on Windows
+- **Cleanup (`cleanup.ts`)**: Provides cleanup functionality to remove stale cache entries, invalid server references, and broken symlinks with dry-run and interactive modes
+- **Test Suite (`__tests__/`)**: Comprehensive unit tests for schema validation, cache management, cleanup operations, and utility functions using Vitest
 - **Console Selector (`console-selector.ts`)**: Manages config selection with TTY detection and TUI/readline fallback
 - **TUI Components (`tui/`)**: React/Ink-based terminal user interface with modern navigation and visual feedback
 - **Claude Launcher (`claude-launcher.ts`)**: Manages Claude Code process spawning with selected configs
 
 ## Build Process
 
-The build process uses TypeScript compilation:
+The build process uses modern TypeScript tooling:
 
-1. **Type Checking**: Validates TypeScript types without emitting files
-2. **Linting**: Uses Biome for code quality and style checking
-3. **Testing**: Schema validation unit tests using Node.js built-in test runner
-4. **Compilation**: Transpiles TypeScript to JavaScript in `dist/` directory
+1. **Linting**: Uses Biome for code quality and style checking
+2. **Type Checking**: Validates TypeScript types without emitting files
+3. **Compilation**: Uses tsup to bundle and transpile TypeScript to JavaScript in `dist/` directory
+4. **Testing**: Unit tests using Vitest test framework
 5. **CLI Testing**: CLI functionality testing with `--help` and `--version`
 
 ## CI/CD Pipeline
@@ -159,18 +137,23 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs on:
 
 **Quality Checks** (runs on Node.js 18.x, 20.x, 22.x):
 
-1. Install dependencies with pnpm
-2. Run linting and formatting checks
-3. Check Prettier formatting for markdown/JSON/YAML files
-4. Run TypeScript type checking
-5. Run unit tests for schema validation
-6. Build the project
-7. Test CLI functionality (`--help`, `--version`)
+1. Checkout code and setup pnpm 10.17.0
+2. Install dependencies with frozen lockfile
+3. Run Biome linting and formatting checks
+4. Check Prettier formatting for markdown/JSON/YAML files
+5. Run TypeScript type checking
+6. Run unit tests with Vitest
+7. Build the project
+8. Test CLI functionality (`--help`, `--version`)
 
 ### Caching Strategy
 
 - Uses pnpm store caching with unique keys per Node.js version
 - Cache keys include `pnpm-lock.yaml` hash for dependency changes
+
+### Concurrency
+
+- Cancels in-progress workflows when new commits are pushed to the same PR or branch
 
 ## Release Process
 
@@ -178,14 +161,14 @@ The project uses automated release management:
 
 1. **Version Bumping**: Uses `scripts/release.js` to bump version in `package.json`
 2. **Release Notes**: Generates changelog from git commits using `scripts/generate-release-notes.js`
-3. **Git Tagging**: Creates version tags (e.g., `v0.2.0`)
+3. **Git Tagging**: Creates version tags (e.g., `v1.0.0`)
 4. **Publishing**: Publishes to npm with `@gsong/ccmcp` scope
 
 ### Release Commands
 
-- `pnpm run release:patch` - Bug fixes and minor changes
-- `pnpm run release:minor` - New features, backward compatible
-- `pnpm run release:major` - Breaking changes
+- `pnpm run release:patch` - Bug fixes and minor changes (1.0.0 → 1.0.1)
+- `pnpm run release:minor` - New features, backward compatible (1.0.0 → 1.1.0)
+- `pnpm run release:major` - Breaking changes (1.0.0 → 2.0.0)
 
 ## Tools and Configuration
 
@@ -193,18 +176,23 @@ The project uses automated release management:
 
 - **Biome**: Linting and formatting for TypeScript/JavaScript
 - **Prettier**: Formatting for markdown, JSON, YAML files
-- **TypeScript**: Type checking and compilation
-- **Node.js Test Runner**: Built-in test framework for unit testing
+- **TypeScript**: Type checking
+- **Vitest**: Modern unit testing framework
+- **tsup**: TypeScript bundler for building the project
 
 ### Libraries and Frameworks
 
 - **Zod**: Runtime schema validation with TypeScript integration
 - **React + Ink**: Terminal user interface framework
+- **shell-quote**: Command-line argument parsing for safe shell command construction
+- **npm-run-all2**: Utility for running multiple npm scripts sequentially or in parallel
 
 ### Configuration Files
 
 - `biome.json` - Biome linter and formatter settings
 - `tsconfig.json` - TypeScript compiler configuration
+- `tsup.config.ts` - tsup bundler configuration
+- `vitest.config.ts` - Vitest test framework configuration
 - `.prettierignore` - Files excluded from Prettier formatting
 - `.gitignore` - Git ignore patterns including build artifacts
 
@@ -229,6 +217,8 @@ The project includes both unit tests and manual CLI testing. Before contributing
    - Invalid configurations with proper error messages
    - Edge cases and malformed JSON
    - Utility functions for error formatting
+   - Selection cache management (load, save, clear)
+   - Cleanup operations (stale entries, invalid references, broken symlinks)
 
 #### Manual Testing
 
@@ -237,10 +227,18 @@ The project includes both unit tests and manual CLI testing. Before contributing
    - Default directory (`~/.claude/mcp-configs/`)
    - Custom directory via `--config-dir`
    - Custom directory via `CCMCP_CONFIG_DIR` environment variable
-3. Verify Claude Code launching with various config combinations
-4. Test error handling for non-existent config directories and invalid configs
-5. Test TUI functionality in TTY environments and readline fallback in non-TTY contexts
-6. Test TUI navigation, selection, and error detail expansion
+3. Test selection caching:
+   - Verify selections are remembered per project
+   - Test `--ignore-cache` flag
+   - Test `--clear-cache` flag
+4. Test cleanup command:
+   - Run `cleanup --dry-run` to preview changes
+   - Test with `--yes` and `--verbose` flags
+   - Verify removal of stale entries, invalid references, and broken symlinks
+5. Verify Claude Code launching with various config combinations
+6. Test error handling for non-existent config directories and invalid configs
+7. Test TUI functionality in TTY environments and readline fallback in non-TTY contexts
+8. Test TUI navigation, selection, and error detail expansion
 
 ### Pull Request Process
 

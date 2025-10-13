@@ -13,7 +13,9 @@ Ever have multiple MCP server configs but only want to use specific ones for dif
 - 🔍 **Discovers** all MCP configurations in your config directory
 - ✅ **Validates** config files and shows clear error details for invalid ones
 - 🎯 **Interactive selection** via modern terminal interface
+- 💾 **Remembers** your selections per project for faster launches
 - 🚀 **Launches Claude Code** with only your chosen configs
+- 🧹 **Cleanup** stale cache entries and broken symlinks
 - ⚙️ **Configurable** via CLI options or environment variables
 
 ## Installation
@@ -50,6 +52,16 @@ CCMCP_CONFIG_DIR=/path/to/configs ccmcp
 
 # Pass options to Claude Code
 ccmcp --resume
+
+# Cache management
+ccmcp --ignore-cache          # Skip loading previous selections
+ccmcp --clear-cache           # Clear all cached selections
+
+# Cleanup stale cache entries and broken symlinks
+ccmcp cleanup                 # Interactive cleanup with prompts
+ccmcp cleanup --dry-run       # Preview what would be cleaned
+ccmcp cleanup --yes           # Skip prompts, automatically proceed
+ccmcp cleanup --verbose       # Show detailed cleanup information
 ```
 
 ### TUI Navigation
