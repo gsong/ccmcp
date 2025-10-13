@@ -7,8 +7,16 @@ import { clearCache, getCacheDir, saveSelections } from "../selection-cache.js";
 
 describe.sequential("cleanupCache", () => {
   let testConfigDir: string;
+  let originalCacheHome: string | undefined;
 
   beforeEach(async () => {
+    // Isolate cache directory for this test file
+    originalCacheHome = process.env.XDG_CACHE_HOME;
+    process.env.XDG_CACHE_HOME = join(
+      tmpdir(),
+      `ccmcp-cache-cleanup-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+    );
+
     await clearCache();
     testConfigDir = join(tmpdir(), `ccmcp-cleanup-test-${Date.now()}`);
     await mkdir(testConfigDir, { recursive: true });
@@ -19,6 +27,12 @@ describe.sequential("cleanupCache", () => {
 
   afterEach(async () => {
     await clearCache();
+    // Restore original cache home
+    if (originalCacheHome === undefined) {
+      delete process.env.XDG_CACHE_HOME;
+    } else {
+      process.env.XDG_CACHE_HOME = originalCacheHome;
+    }
   });
 
   test("removes stale cache entries for non-existent projects", async () => {

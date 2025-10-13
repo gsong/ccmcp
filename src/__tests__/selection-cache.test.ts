@@ -1,7 +1,7 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import {
   clearCache,
   getCacheDir,
@@ -57,6 +57,16 @@ describe("getProjectDir", () => {
 describe("loadSelections and saveSelections", () => {
   const testProjectDir = join(tmpdir(), "ccmcp-test-project");
   const testConfigDir = join(tmpdir(), "ccmcp-test-config");
+  let originalCacheHome: string | undefined;
+
+  beforeEach(async () => {
+    // Isolate cache directory for this test file
+    originalCacheHome = process.env.XDG_CACHE_HOME;
+    process.env.XDG_CACHE_HOME = join(
+      tmpdir(),
+      `ccmcp-cache-selection-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+    );
+  });
 
   afterEach(async () => {
     // Clean up any cache files created during tests
@@ -64,6 +74,12 @@ describe("loadSelections and saveSelections", () => {
       await clearCache();
     } catch {
       // Ignore cleanup errors
+    }
+    // Restore original cache home
+    if (originalCacheHome === undefined) {
+      delete process.env.XDG_CACHE_HOME;
+    } else {
+      process.env.XDG_CACHE_HOME = originalCacheHome;
     }
   });
 
@@ -143,6 +159,26 @@ describe("loadSelections and saveSelections", () => {
 });
 
 describe("clearCache", () => {
+  let originalCacheHome: string | undefined;
+
+  beforeEach(async () => {
+    // Isolate cache directory for this test file
+    originalCacheHome = process.env.XDG_CACHE_HOME;
+    process.env.XDG_CACHE_HOME = join(
+      tmpdir(),
+      `ccmcp-cache-clear-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+    );
+  });
+
+  afterEach(async () => {
+    // Restore original cache home
+    if (originalCacheHome === undefined) {
+      delete process.env.XDG_CACHE_HOME;
+    } else {
+      process.env.XDG_CACHE_HOME = originalCacheHome;
+    }
+  });
+
   test("removes all cache files", async () => {
     await saveSelections("/project1", "/config1", ["config1"]);
     await saveSelections("/project2", "/config2", ["config2"]);
