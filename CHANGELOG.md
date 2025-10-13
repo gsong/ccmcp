@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.0.0] - 2025-10-13
+
+### Features
+
+- Add cleanup command to remove stale configurations
+
+### Bug Fixes
+
+- Move temp file cleanup after GitHub release creation
+
+### Improvements
+
+- Reorganize npm scripts with public/private separation
+
 ## [v0.6.0] - 2025-10-12
 
 ### Features
