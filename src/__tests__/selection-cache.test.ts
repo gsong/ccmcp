@@ -55,7 +55,7 @@ describe("getProjectDir", () => {
 
   test("returns main worktree path when in a worktree", () => {
     let callCount = 0;
-    const mockExecutor = (cmd: string) => {
+    const mockExecutor = (_cmd: string) => {
       callCount++;
       if (callCount === 1) {
         // First call: git rev-parse --show-toplevel (returns worktree path)
@@ -78,7 +78,7 @@ branch refs/heads/feature
 
   test("falls back to current root when worktree list fails", () => {
     let callCount = 0;
-    const mockExecutor = (cmd: string) => {
+    const mockExecutor = (_cmd: string) => {
       callCount++;
       if (callCount === 1) {
         // First call: git rev-parse --show-toplevel
@@ -94,7 +94,7 @@ branch refs/heads/feature
 
   test("handles worktree list with no worktree line", () => {
     let callCount = 0;
-    const mockExecutor = (cmd: string) => {
+    const mockExecutor = (_cmd: string) => {
       callCount++;
       if (callCount === 1) {
         return "/path/to/repo\n";
@@ -108,7 +108,7 @@ branch refs/heads/feature
 
   test("returns main worktree when called from main repo", () => {
     let callCount = 0;
-    const mockExecutor = (cmd: string) => {
+    const mockExecutor = (_cmd: string) => {
       callCount++;
       if (callCount === 1) {
         return "/path/to/main/repo\n";
