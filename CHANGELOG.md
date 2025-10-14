@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.1.0] - 2025-10-14
+
+### Features
+
+- Add git worktree support for shared selections
+
+### Bug Fixes
+
+- Isolate cache directories in parallel test execution
+- Prefix unused cmd parameter with underscore in tests
+
 ## [v1.0.0] - 2025-10-13
 
 ### Features
