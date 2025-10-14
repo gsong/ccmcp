@@ -38,7 +38,31 @@ export function getProjectDir(
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
     }) as string;
-    return gitRoot.trim();
+    const currentRoot = gitRoot.trim();
+
+    // Check if we're in a worktree by listing all worktrees
+    try {
+      const worktreeList = executor("git worktree list --porcelain", {
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"],
+      }) as string;
+
+      // Parse the first worktree entry (which is always the main worktree)
+      // Format: "worktree /path/to/main/repo"
+      const firstWorktreeLine = worktreeList
+        .split("\n")
+        .find((line) => line.startsWith("worktree "));
+
+      if (firstWorktreeLine) {
+        const mainWorktreePath = firstWorktreeLine.substring(9).trim();
+        return mainWorktreePath;
+      }
+    } catch {
+      // If worktree list fails, we're likely not in a worktree setup
+      // or using an older git version, so just use the current root
+    }
+
+    return currentRoot;
   } catch {
     return process.cwd();
   }

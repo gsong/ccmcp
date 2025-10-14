@@ -52,6 +52,76 @@ describe("getProjectDir", () => {
     const result = getProjectDir(mockExecutor);
     expect(result).toBe(process.cwd());
   });
+
+  test("returns main worktree path when in a worktree", () => {
+    let callCount = 0;
+    const mockExecutor = (cmd: string) => {
+      callCount++;
+      if (callCount === 1) {
+        // First call: git rev-parse --show-toplevel (returns worktree path)
+        return "/path/to/worktree\n";
+      }
+      // Second call: git worktree list --porcelain
+      return `worktree /path/to/main/repo
+HEAD abcd1234567890abcd1234567890abcd12345678
+branch refs/heads/main
+
+worktree /path/to/worktree
+HEAD efgh5678901234efgh5678901234efgh56789012
+branch refs/heads/feature
+`;
+    };
+    const result = getProjectDir(mockExecutor);
+    expect(result).toBe("/path/to/main/repo");
+    expect(callCount).toBe(2);
+  });
+
+  test("falls back to current root when worktree list fails", () => {
+    let callCount = 0;
+    const mockExecutor = (cmd: string) => {
+      callCount++;
+      if (callCount === 1) {
+        // First call: git rev-parse --show-toplevel
+        return "/path/to/repo\n";
+      }
+      // Second call: git worktree list fails
+      throw new Error("worktree list failed");
+    };
+    const result = getProjectDir(mockExecutor);
+    expect(result).toBe("/path/to/repo");
+    expect(callCount).toBe(2);
+  });
+
+  test("handles worktree list with no worktree line", () => {
+    let callCount = 0;
+    const mockExecutor = (cmd: string) => {
+      callCount++;
+      if (callCount === 1) {
+        return "/path/to/repo\n";
+      }
+      // Second call: empty worktree list output
+      return "";
+    };
+    const result = getProjectDir(mockExecutor);
+    expect(result).toBe("/path/to/repo");
+  });
+
+  test("returns main worktree when called from main repo", () => {
+    let callCount = 0;
+    const mockExecutor = (cmd: string) => {
+      callCount++;
+      if (callCount === 1) {
+        return "/path/to/main/repo\n";
+      }
+      // When called from main repo, worktree list still shows it as first entry
+      return `worktree /path/to/main/repo
+HEAD abcd1234567890abcd1234567890abcd12345678
+branch refs/heads/main
+`;
+    };
+    const result = getProjectDir(mockExecutor);
+    expect(result).toBe("/path/to/main/repo");
+  });
 });
 
 describe("loadSelections and saveSelections", () => {
