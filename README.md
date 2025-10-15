@@ -14,6 +14,7 @@ Ever have multiple MCP server configs but only want to use specific ones for dif
 - ✅ **Validates** config files and shows clear error details for invalid ones
 - 🎯 **Interactive selection** via modern terminal interface
 - 💾 **Remembers** your selections per project for faster launches
+- 🌳 **Git worktree aware** - selections are shared across worktrees of the same repository
 - 🚀 **Launches Claude Code** with only your chosen configs
 - 🧹 **Cleanup** stale cache entries and broken symlinks
 - ⚙️ **Configurable** via CLI options or environment variables
@@ -64,12 +65,20 @@ ccmcp cleanup --yes           # Skip prompts, automatically proceed
 ccmcp cleanup --verbose       # Show detailed cleanup information
 ```
 
+**Cleanup notes:**
+
+- Automatically removes entire cache files when no valid configs remain after cleanup
+- Selecting zero configs automatically clears the selection cache for that project
+
 ### TUI Navigation
 
 - **↑/↓**: Navigate • **Space**: Select • **Enter**: Launch Claude Code
-- **q**: Quit
+- **q** / **Ctrl+C**: Quit
 - **a**: Select all
 - **c**: Clear all
+- **p**: Toggle config preview panel
+- **i**: Show/hide invalid configs
+- **e**: Toggle error details (when viewing invalid configs)
 
 ## Requirements
 
