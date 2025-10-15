@@ -9,6 +9,12 @@
 
 - Always use the **github-project-manager** agent when working with `gh project` commands
 
+## CLI Flag Management
+
+- **ALWAYS** check for collisions with Claude Code flags before adding new flags
+- Run `claude -h` to see current Claude Code flags
+- This project allows passthrough args to Claude Code, so flag collisions break functionality
+
 ## Important Scripts
 
 ### Development & Testing

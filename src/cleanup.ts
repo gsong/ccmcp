@@ -14,7 +14,6 @@ export interface CleanupOptions {
   configDir: string;
   dryRun?: boolean;
   yes?: boolean;
-  verbose?: boolean;
 }
 
 export interface CleanupResult {
@@ -116,9 +115,6 @@ async function cleanupStaleCacheEntries(
   }
 
   if (staleFiles.length === 0) {
-    if (options.verbose) {
-      console.log("No stale cache entries found.");
-    }
     return;
   }
 
@@ -156,18 +152,9 @@ async function cleanupStaleCacheEntries(
     try {
       await rm(path, { force: true });
       result.staleCacheEntries++;
-      if (options.verbose) {
-        console.log(`Removed: ${path}`);
-      }
     } catch (error) {
       result.errors.push(`Failed to remove ${path}: ${error}`);
     }
-  }
-
-  if (options.verbose && result.staleCacheEntries > 0) {
-    console.log(
-      `Removed ${result.staleCacheEntries} stale cache ${result.staleCacheEntries === 1 ? "entry" : "entries"}.`,
-    );
   }
 }
 
@@ -204,9 +191,6 @@ async function cleanupInvalidServerReferences(
   }
 
   if (filesToUpdate.length === 0) {
-    if (options.verbose) {
-      console.log("No invalid server references found.");
-    }
     return;
   }
 
@@ -263,11 +247,6 @@ async function cleanupInvalidServerReferences(
 
       if (validConfigs.length === 0) {
         await rm(path, { force: true });
-        if (options.verbose) {
-          console.log(
-            `Removed cache file (no valid configs remaining): ${path}`,
-          );
-        }
       } else {
         const updatedCache: SelectionCache = {
           ...cache,
@@ -275,23 +254,12 @@ async function cleanupInvalidServerReferences(
           lastModified: new Date().toISOString(),
         };
         await writeFile(path, JSON.stringify(updatedCache, null, 2), "utf-8");
-        if (options.verbose) {
-          console.log(
-            `Updated: ${path} (removed ${invalidConfigs.length} invalid ${invalidConfigs.length === 1 ? "reference" : "references"})`,
-          );
-        }
       }
 
       result.invalidServerReferences += invalidConfigs.length;
     } catch (error) {
       result.errors.push(`Failed to update ${path}: ${error}`);
     }
-  }
-
-  if (options.verbose && result.invalidServerReferences > 0) {
-    console.log(
-      `Removed ${result.invalidServerReferences} invalid server ${result.invalidServerReferences === 1 ? "reference" : "references"}.`,
-    );
   }
 }
 
@@ -313,9 +281,6 @@ async function cleanupBrokenSymlinks(
     }
 
     if (brokenLinks.length === 0) {
-      if (options.verbose) {
-        console.log("No broken symlinks found.");
-      }
       return;
     }
 
@@ -355,23 +320,12 @@ async function cleanupBrokenSymlinks(
       try {
         await rm(link, { force: true });
         result.brokenSymlinks++;
-        if (options.verbose) {
-          console.log(`Removed: ${link}`);
-        }
       } catch (error) {
         result.errors.push(`Failed to remove ${link}: ${error}`);
       }
     }
-
-    if (options.verbose && result.brokenSymlinks > 0) {
-      console.log(
-        `Removed ${result.brokenSymlinks} broken ${result.brokenSymlinks === 1 ? "symlink" : "symlinks"}.`,
-      );
-    }
   } catch (error) {
-    if (options.verbose) {
-      console.log(`Could not scan config directory: ${error}`);
-    }
+    console.log(`Could not scan config directory: ${error}`);
   }
 }
 
@@ -389,13 +343,6 @@ export async function cleanupCache(
 
   const cacheFilesBefore = await getAllCacheFiles();
   result.totalCacheFilesBefore = cacheFilesBefore.length;
-
-  if (options.verbose) {
-    console.log(`Starting cleanup${options.dryRun ? " (DRY RUN)" : ""}...`);
-    console.log(`Config directory: ${options.configDir}`);
-    console.log(`Cache directory: ${getCacheDir()}`);
-    console.log(`Current cache files: ${result.totalCacheFilesBefore}\n`);
-  }
 
   await cleanupStaleCacheEntries(options, result);
   await cleanupInvalidServerReferences(options, result);

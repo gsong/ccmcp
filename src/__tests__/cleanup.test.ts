@@ -56,7 +56,6 @@ describe.sequential("cleanupCache", () => {
       configDir: testConfigDir,
       dryRun: false,
       yes: true,
-      verbose: false,
     });
 
     expect(result.staleCacheEntries).toBe(1);
@@ -81,7 +80,6 @@ describe.sequential("cleanupCache", () => {
         configDir: testConfigDir,
         dryRun: true,
         yes: true,
-        verbose: false,
       })
     ).totalCacheFilesBefore;
 
@@ -91,7 +89,6 @@ describe.sequential("cleanupCache", () => {
       configDir: testConfigDir,
       dryRun: false,
       yes: true,
-      verbose: false,
     });
 
     expect(result.totalCacheFilesAfter).toBeLessThanOrEqual(cacheCountBefore);
@@ -108,7 +105,6 @@ describe.sequential("cleanupCache", () => {
       configDir: testConfigDir,
       dryRun: false,
       yes: true,
-      verbose: false,
     });
 
     expect(result.brokenSymlinks).toBe(1);
@@ -125,7 +121,6 @@ describe.sequential("cleanupCache", () => {
       configDir: testConfigDir,
       dryRun: false,
       yes: true,
-      verbose: false,
     });
 
     expect(result.brokenSymlinks).toBe(0);
@@ -136,7 +131,6 @@ describe.sequential("cleanupCache", () => {
       configDir: testConfigDir,
       dryRun: false,
       yes: true,
-      verbose: false,
     });
 
     expect(result.brokenSymlinks).toBe(0);
@@ -150,7 +144,6 @@ describe.sequential("cleanupCache", () => {
       configDir: nonExistentDir,
       dryRun: false,
       yes: true,
-      verbose: false,
     });
 
     expect(result.brokenSymlinks).toBe(0);
@@ -170,7 +163,6 @@ describe.sequential("cleanupCache", () => {
       configDir: testConfigDir,
       dryRun: false,
       yes: true,
-      verbose: false,
     });
 
     expect(result.totalCacheFilesAfter).toBeGreaterThanOrEqual(1);
@@ -197,7 +189,6 @@ describe.sequential("cleanupCache", () => {
       configDir: testConfigDir,
       dryRun: false,
       yes: true,
-      verbose: false,
     });
 
     expect(result.staleCacheEntries).toBe(1);

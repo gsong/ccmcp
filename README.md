@@ -17,6 +17,7 @@ Ever have multiple MCP server configs but only want to use specific ones for dif
 - 🌳 **Git worktree aware** - selections are shared across worktrees of the same repository
 - 🚀 **Launches Claude Code** with only your chosen configs
 - 🧹 **Cleanup** stale cache entries and broken symlinks
+- 👻 **Ephemeral mode** for one-off selections without saving
 - ⚙️ **Configurable** via CLI options or environment variables
 
 ## Installation
@@ -55,14 +56,17 @@ CCMCP_CONFIG_DIR=/path/to/configs ccmcp
 ccmcp --resume
 
 # Cache management
-ccmcp --ignore-cache          # Skip loading previous selections
+ccmcp -i                      # Skip loading previous selections (short flag)
+ccmcp --ignore-cache          # Skip loading previous selections (long flag)
+ccmcp -n                      # Don't save selections (ephemeral mode)
+ccmcp --no-save               # Don't save selections (ephemeral mode)
+ccmcp -in                     # Combine: fresh start + no saving
 ccmcp --clear-cache           # Clear all cached selections
 
 # Cleanup stale cache entries and broken symlinks
 ccmcp cleanup                 # Interactive cleanup with prompts
 ccmcp cleanup --dry-run       # Preview what would be cleaned
 ccmcp cleanup --yes           # Skip prompts, automatically proceed
-ccmcp cleanup --verbose       # Show detailed cleanup information
 ```
 
 **Cleanup notes:**

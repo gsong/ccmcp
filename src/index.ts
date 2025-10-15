@@ -22,10 +22,10 @@ interface CliArgs {
   "config-dir"?: string;
   "ignore-cache"?: boolean;
   "clear-cache"?: boolean;
+  "no-save"?: boolean;
   cleanup?: boolean;
   "dry-run"?: boolean;
   yes?: boolean;
-  verbose?: boolean;
 }
 
 export function showHelp(): void {
@@ -41,17 +41,17 @@ Description:
   and launches Claude Code with the selected configs.
 
 Options:
-  -h, --help              Show this help message
-  -v, --version           Show version information
-  -c, --config-dir <dir>  Specify MCP config directory (default: ~/.claude/mcp-configs)
-  --ignore-cache          Skip loading previously selected configs
-  --clear-cache           Clear all cached selections and exit
+  -h, --help                 Show this help message
+  -v, --version              Show version information
+  --config-dir <dir>         Specify MCP config directory (default: ~/.claude/mcp-configs)
+  -i, --ignore-cache         Skip loading previously selected configs
+  -n, --no-save              Don't save selections (ephemeral mode)
+  --clear-cache              Clear all cached selections and exit
 
 Cleanup Command:
-  cleanup                 Remove stale cache entries and broken symlinks
-    --dry-run             Preview what would be cleaned without making changes
-    --yes                 Skip all prompts and automatically proceed
-    --verbose             Show detailed information about cleanup process
+  cleanup                    Remove stale cache entries and broken symlinks
+    --dry-run                Preview what would be cleaned without making changes
+    --yes                    Skip all prompts and automatically proceed
 
 Environment Variables:
   CCMCP_CONFIG_DIR  Alternative to --config-dir option
@@ -89,14 +89,15 @@ export function parseCliArgs(): { values: CliArgs; positionals: string[] } {
     "--help",
     "-v",
     "--version",
-    "-c",
     "--config-dir",
+    "-i",
     "--ignore-cache",
     "--clear-cache",
+    "-n",
+    "--no-save",
     "--cleanup",
     "--dry-run",
     "--yes",
-    "--verbose",
   ]);
 
   const ccmcpArgs: string[] = [];
@@ -111,11 +112,29 @@ export function parseCliArgs(): { values: CliArgs; positionals: string[] } {
       continue;
     }
 
+    // Handle combined short flags (e.g., -in -> -i -n)
+    if (arg.startsWith("-") && !arg.startsWith("--") && arg.length > 2) {
+      const flags = arg.slice(1).split("");
+      let allFlagsValid = true;
+      for (const flag of flags) {
+        if (!ccmcpFlags.has(`-${flag}`)) {
+          allFlagsValid = false;
+          break;
+        }
+      }
+      if (allFlagsValid) {
+        for (const flag of flags) {
+          ccmcpArgs.push(`-${flag}`);
+        }
+        continue;
+      }
+    }
+
     if (ccmcpFlags.has(arg)) {
       ccmcpArgs.push(arg);
 
       // Handle config-dir value
-      if ((arg === "-c" || arg === "--config-dir") && i + 1 < rawArgs.length) {
+      if (arg === "--config-dir" && i + 1 < rawArgs.length) {
         i++;
         const nextArg = rawArgs[i];
         if (nextArg) {
@@ -132,13 +151,13 @@ export function parseCliArgs(): { values: CliArgs; positionals: string[] } {
     options: {
       help: { type: "boolean", short: "h" },
       version: { type: "boolean", short: "v" },
-      "config-dir": { type: "string", short: "c" },
-      "ignore-cache": { type: "boolean" },
+      "config-dir": { type: "string" },
+      "ignore-cache": { type: "boolean", short: "i" },
       "clear-cache": { type: "boolean" },
+      "no-save": { type: "boolean", short: "n" },
       cleanup: { type: "boolean" },
       "dry-run": { type: "boolean" },
       yes: { type: "boolean" },
-      verbose: { type: "boolean" },
     },
     allowPositionals: false,
     strict: true,
@@ -179,7 +198,6 @@ export async function main(): Promise<number> {
       configDir: resolvedConfigDir,
       dryRun: values["dry-run"],
       yes: values.yes,
-      verbose: values.verbose,
     });
 
     console.log("\nCleanup Summary:");
@@ -231,9 +249,11 @@ export async function main(): Promise<number> {
       previouslySelected,
     );
 
-    // Save selections for next time
-    const selectedNames = selectedConfigs.map((c) => c.name);
-    await saveSelections(projectDir, resolvedConfigDir, selectedNames);
+    // Save selections for next time unless --no-save is set
+    if (!values["no-save"]) {
+      const selectedNames = selectedConfigs.map((c) => c.name);
+      await saveSelections(projectDir, resolvedConfigDir, selectedNames);
+    }
 
     const exitCode = await launchClaudeCode({
       selectedConfigs,

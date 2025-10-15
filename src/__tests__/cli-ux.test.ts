@@ -141,16 +141,49 @@ describe("CLI User Experience", () => {
       }
     });
 
-    it("should parse short config-dir flag correctly", async () => {
+    it("should parse short ignore-cache flag correctly", async () => {
       const originalArgv = process.argv;
 
       try {
-        process.argv = ["node", "ccmcp", "-c", "/test/path"];
+        process.argv = ["node", "ccmcp", "-i"];
 
         const { parseCliArgs } = await import("../index.js");
         const result = parseCliArgs();
 
-        expect(result.values["config-dir"]).toBe("/test/path");
+        expect(result.values["ignore-cache"]).toBe(true);
+        expect(result.positionals).toHaveLength(0);
+      } finally {
+        process.argv = originalArgv;
+      }
+    });
+
+    it("should parse short no-save flag correctly", async () => {
+      const originalArgv = process.argv;
+
+      try {
+        process.argv = ["node", "ccmcp", "-n"];
+
+        const { parseCliArgs } = await import("../index.js");
+        const result = parseCliArgs();
+
+        expect(result.values["no-save"]).toBe(true);
+        expect(result.positionals).toHaveLength(0);
+      } finally {
+        process.argv = originalArgv;
+      }
+    });
+
+    it("should parse combined short flags correctly", async () => {
+      const originalArgv = process.argv;
+
+      try {
+        process.argv = ["node", "ccmcp", "-in"];
+
+        const { parseCliArgs } = await import("../index.js");
+        const result = parseCliArgs();
+
+        expect(result.values["ignore-cache"]).toBe(true);
+        expect(result.values["no-save"]).toBe(true);
         expect(result.positionals).toHaveLength(0);
       } finally {
         process.argv = originalArgv;
@@ -176,7 +209,14 @@ describe("CLI User Experience", () => {
       const originalArgv = process.argv;
 
       try {
-        process.argv = ["node", "ccmcp", "-c", "/path", "--resume", "--debug"];
+        process.argv = [
+          "node",
+          "ccmcp",
+          "--config-dir",
+          "/path",
+          "--resume",
+          "--debug",
+        ];
 
         const { parseCliArgs } = await import("../index.js");
         const result = parseCliArgs();
@@ -236,7 +276,9 @@ describe("CLI User Experience", () => {
         expect(helpOutput).toContain("Options:");
         expect(helpOutput).toContain("  -h, --help");
         expect(helpOutput).toContain("  -v, --version");
-        expect(helpOutput).toContain("  -c, --config-dir");
+        expect(helpOutput).toContain("  --config-dir");
+        expect(helpOutput).toContain("  -i, --ignore-cache");
+        expect(helpOutput).toContain("  -n, --no-save");
 
         // Should have Environment Variables section
         expect(helpOutput).toContain("Environment Variables:");
