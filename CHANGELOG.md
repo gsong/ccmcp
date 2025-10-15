@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.2.0] - 2025-10-15
+
+### Bug Fixes
+
+- Resolve CLI flag collisions with Claude Code passthrough
+
+### Improvements
+
+- Document git worktree support, TUI shortcuts, and cleanup behaviors
+
 ## [v1.1.0] - 2025-10-14
 
 ### Features
