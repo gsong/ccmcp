@@ -45,9 +45,7 @@
     "_format:prettier": "prettier --write '**/*.{md,json,yaml,yml}'",
     "_clean": "rm -rf dist",
     "_release:generate-notes": "node scripts/generate-release-notes.js",
-    "_release:clean-files": "rm -f .tmp-tag-notes.txt .tmp-release-prompt.txt",
-    "_publish:npm": "pnpm publish --access public",
-    "_publish:npm-dry": "pnpm publish --dry-run --access public"
+    "_release:clean-files": "rm -f .tmp-tag-notes.txt .tmp-release-prompt.txt"
   },
   "packageManager": "pnpm@10.17.0",
   "devDependencies": {
