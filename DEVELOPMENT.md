@@ -157,18 +157,39 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs on:
 
 ## Release Process
 
-The project uses automated release management:
+The project uses automated release management with GitHub Actions for publishing:
 
 1. **Version Bumping**: Uses `scripts/release.js` to bump version in `package.json`
 2. **Release Notes**: Generates changelog from git commits using `scripts/generate-release-notes.js`
-3. **Git Tagging**: Creates version tags (e.g., `v1.0.0`)
-4. **Publishing**: Publishes to npm with `@gsong/ccmcp` scope
+3. **Git Tagging**: Creates version tags (e.g., `v1.0.0`) and pushes to GitHub
+4. **CI Publishing**: GitHub Actions automatically builds and publishes to npm via OIDC
 
 ### Release Commands
 
 - `pnpm run release:patch` - Bug fixes and minor changes (1.0.0 → 1.0.1)
 - `pnpm run release:minor` - New features, backward compatible (1.0.0 → 1.1.0)
 - `pnpm run release:major` - Breaking changes (1.0.0 → 2.0.0)
+
+### Publishing Workflow
+
+The project uses **npm Trusted Publishers (OIDC)** for secure, token-free publishing:
+
+- Release scripts run locally and push a git tag
+- GitHub Actions workflow (`.github/workflows/publish.yml`) triggers on tag push
+- Workflow builds project and publishes to npm using OIDC authentication
+- No npm tokens required anywhere
+
+### Initial Setup (One-Time)
+
+To enable automated publishing, configure Trusted Publishers on npmjs.com:
+
+1. Go to https://www.npmjs.com/package/@gsong/ccmcp/access
+2. Click "Publishing access" → "Add a publisher"
+3. Select "GitHub Actions"
+4. Configure:
+   - Repository: `gsong/ccmcp`
+   - Workflow: `publish.yml`
+   - Environment: (leave blank)
 
 ## Tools and Configuration
 

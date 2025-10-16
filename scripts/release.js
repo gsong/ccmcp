@@ -104,11 +104,9 @@ function confirmRelease(versionType, newVersion) {
   console.log("\nThis will:");
   console.log("  1. Generate release notes");
   console.log("  2. Commit version bump");
-  console.log("  3. Create and push git tag");
-  console.log("  4. Build the project");
-  console.log("  5. Publish to npm");
-  console.log("  6. Create GitHub release");
-  console.log("  7. Clean up temporary files");
+  console.log("  3. Create and push git tag (triggers CI publish to npm)");
+  console.log("  4. Create GitHub release");
+  console.log("  5. Clean up temporary files");
   console.log("=".repeat(60));
 
   // In a real interactive environment, you'd want to prompt for confirmation
@@ -162,19 +160,13 @@ function runRelease(versionType, newVersion) {
   // Step 5: Push changes and tags
   exec("git push --follow-tags", "Pushing changes and tags to remote");
 
-  // Step 6: Build project
-  exec("pnpm run build", "Building project");
-
-  // Step 7: Publish to npm
-  exec("pnpm run _publish:npm", "Publishing to npm");
-
-  // Step 8: Create GitHub release (before cleaning up temp files)
+  // Step 6: Create GitHub release (before cleaning up temp files)
   exec(
     `gh release create "${newVersion}" --title "${newVersion}" --notes-file .tmp-tag-notes.txt`,
     "Creating GitHub release",
   );
 
-  // Step 9: Clean up temporary files (after GitHub release)
+  // Step 7: Clean up temporary files (after GitHub release)
   exec("pnpm run _release:clean-files", "Cleaning up temporary files");
 
   console.log(`\n${"=".repeat(60)}`);
@@ -183,9 +175,9 @@ function runRelease(versionType, newVersion) {
   console.log(`✅ Version ${newVersion} has been:`);
   console.log("   • Committed and tagged in git");
   console.log("   • Pushed to remote repository");
-  console.log("   • Built and published to npm");
   console.log("   • Release notes generated and added to CHANGELOG.md");
   console.log("   • GitHub release created");
+  console.log("   • GitHub Actions will build and publish to npm");
   console.log("=".repeat(60));
 }
 
