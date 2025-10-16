@@ -1,0 +1,15 @@
+# zizmor configuration
+# https://docs.zizmor.sh/configuration/
+
+# Suppress cache-poisoning warning for publish workflow
+# Rationale: Low-confidence finding with multiple mitigations in place:
+# - Uses --frozen-lockfile to ensure dependencies match lock file
+# - Uses --provenance for cryptographic attestation
+# - Restricted permissions (contents: read, id-token: write)
+# - Only runs on tagged releases
+# - Publishing doesn't happen frequently, so cache benefit is minimal
+
+rules:
+  cache-poisoning:
+    ignore:
+      - "publish.yml"
