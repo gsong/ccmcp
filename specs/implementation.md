@@ -6,10 +6,10 @@ This document provides comprehensive technical implementation details including 
 
 ### Runtime Environment
 
-- **Node.js**: Minimum version 18.0.0
-- **Platform Support**: Cross-platform (macOS, Linux, Windows)
-- **Module System**: ES Modules (ESM) with `.js` extensions
-- **Package Manager**: pnpm (recommended), npm compatible
+* __Node.js__: Version 22.18.0+ or 24.2.0+ (excludes 23.x and 24.0-24.1)
+* __Platform Support__: Cross-platform (macOS, Linux, Windows)
+* __Module System__: ES Modules (ESM) with `.js` extensions
+* __Package Manager__: pnpm (recommended), npm compatible
 
 ### Core Dependencies
 
@@ -24,12 +24,12 @@ This document provides comprehensive technical implementation details including 
 }
 ```
 
-**Dependency Justification**:
+__Dependency Justification__:
 
-- **React**: Component-based architecture for TUI
-- **Ink**: Terminal interface rendering engine
-- **Zod**: Runtime schema validation with TypeScript integration
-- **@types/react**: TypeScript definitions for React
+* __React__: Component-based architecture for TUI
+* __Ink__: Terminal interface rendering engine
+* __Zod__: Runtime schema validation with TypeScript integration
+* __@types/react__: TypeScript definitions for React
 
 #### Development Dependencies
 
@@ -44,14 +44,14 @@ This document provides comprehensive technical implementation details including 
 }
 ```
 
-**Dependency Justification**:
+__Dependency Justification__:
 
-- **TypeScript**: Type safety and compile-time error checking
-- **tsx**: Development execution of TypeScript files
-- **Biome**: Fast linting and formatting
-- **@types/node**: Node.js type definitions
-- **npm-run-all2**: Script orchestration and parallelization
-- **Prettier**: Code formatting for non-JavaScript files
+* __TypeScript__: Type safety and compile-time error checking
+* __tsx__: Development execution of TypeScript files
+* __Biome__: Fast linting and formatting
+* __@types/node__: Node.js type definitions
+* __npm-run-all2__: Script orchestration and parallelization
+* __Prettier__: Code formatting for non-JavaScript files
 
 ### Built-in Node.js Modules
 
@@ -104,17 +104,17 @@ import { main } from "./main.js";
 
 #### Core Modules
 
-- **Scanner**: Configuration file discovery and validation
-- **Selector**: User interface and interaction handling
-- **Launcher**: Process spawning and lifecycle management
-- **Utils**: Shared utilities and error formatting
+* __Scanner__: Configuration file discovery and validation
+* __Selector__: User interface and interaction handling
+* __Launcher__: Process spawning and lifecycle management
+* __Utils__: Shared utilities and error formatting
 
 #### React Components (`src/tui/`)
 
-- **ConfigSelector**: Main selection interface
-- **ConfigPreview**: File content preview panel
-- **ErrorDisplay**: Validation error display
-- **index.ts**: Component exports
+* __ConfigSelector__: Main selection interface
+* __ConfigPreview__: File content preview panel
+* __ErrorDisplay__: Validation error display
+* __index.ts__: Component exports
 
 ## Build System Configuration
 
@@ -142,13 +142,13 @@ import { main } from "./main.js";
 }
 ```
 
-**Key Configuration Decisions**:
+__Key Configuration Decisions__:
 
-- **ES2022 Target**: Modern JavaScript features with Node 18+ support
-- **Node16 Module Resolution**: Proper ESM handling with file extensions
-- **Strict Mode**: Maximum type safety
-- **JSX Support**: React component compilation
-- **Source Maps**: Development debugging support
+* __ES2022 Target__: Modern JavaScript features with Node 18+ support
+* __Node16 Module Resolution__: Proper ESM handling with file extensions
+* __Strict Mode__: Maximum type safety
+* __JSX Support__: React component compilation
+* __Source Maps__: Development debugging support
 
 ### Biome Configuration (`biome.json`)
 
@@ -189,7 +189,7 @@ import { main } from "./main.js";
   },
   "type": "module",
   "engines": {
-    "node": ">=18.0.0"
+    "node": "^22.18.0 || >=24.2.0"
   }
 }
 ```
@@ -268,9 +268,9 @@ node --test src/__tests__/utils.test.ts
 
 ### Unit Testing Framework
 
-- **Built-in Node.js Test Runner**: No external dependencies
-- **Assert Module**: Node.js built-in assertions
-- **Test Discovery**: `src/**/*.test.ts` pattern
+* __Built-in Node.js Test Runner__: No external dependencies
+* __Assert Module__: Node.js built-in assertions
+* __Test Discovery__: `src/**/*.test.ts` pattern
 
 ### Test Structure Example
 
@@ -313,17 +313,17 @@ describe("MCP Configuration Schema", () => {
 
 ### Test Categories
 
-1. **Schema Validation Tests**: Comprehensive validation rule testing
-2. **Utility Function Tests**: Error formatting and helper functions
-3. **Integration Tests**: End-to-end workflow testing
-4. **CLI Argument Tests**: Argument parsing validation
+1. __Schema Validation Tests__: Comprehensive validation rule testing
+2. __Utility Function Tests__: Error formatting and helper functions
+3. __Integration Tests__: End-to-end workflow testing
+4. __CLI Argument Tests__: Argument parsing validation
 
 ### Test Coverage Goals
 
-- **Schema Validation**: 100% of validation rules tested
-- **Error Handling**: All error paths covered
-- **Utility Functions**: Complete function coverage
-- **Edge Cases**: Boundary conditions and error states
+* __Schema Validation__: 100% of validation rules tested
+* __Error Handling__: All error paths covered
+* __Utility Functions__: Complete function coverage
+* __Edge Cases__: Boundary conditions and error states
 
 ## Error Handling Strategy
 
@@ -363,10 +363,10 @@ class UserError extends Error {
 
 ### Error Recovery Patterns
 
-- **Graceful Degradation**: Continue with partial success
-- **User Guidance**: Provide actionable error messages
-- **Fallback Options**: Alternative execution paths
-- **Resource Cleanup**: Proper cleanup on failures
+* __Graceful Degradation__: Continue with partial success
+* __User Guidance__: Provide actionable error messages
+* __Fallback Options__: Alternative execution paths
+* __Resource Cleanup__: Proper cleanup on failures
 
 ## Performance Optimizations
 
@@ -388,15 +388,15 @@ const configResults = await Promise.all(
 
 ### Memory Management
 
-- **Streaming**: Large files processed incrementally
-- **Cleanup**: Explicit resource disposal
-- **Minimal Footprint**: Only load necessary data into memory
+* __Streaming__: Large files processed incrementally
+* __Cleanup__: Explicit resource disposal
+* __Minimal Footprint__: Only load necessary data into memory
 
 ### Startup Performance
 
-- **Lazy Loading**: Components loaded on demand
-- **Parallel Operations**: File scanning and validation
-- **Minimal Dependencies**: Small production bundle
+* __Lazy Loading__: Components loaded on demand
+* __Parallel Operations__: File scanning and validation
+* __Minimal Dependencies__: Small production bundle
 
 ## Security Considerations
 
@@ -422,18 +422,18 @@ function validateCommand(command: string): void {
 
 ### Process Security
 
-- **Minimal Privileges**: Child processes spawn with limited access
-- **Environment Isolation**: Controlled environment variable passing
-- **Signal Handling**: Proper cleanup on termination
+* __Minimal Privileges__: Child processes spawn with limited access
+* __Environment Isolation__: Controlled environment variable passing
+* __Signal Handling__: Proper cleanup on termination
 
 ## Release Management
 
 ### Versioning Strategy
 
-- **Semantic Versioning**: MAJOR.MINOR.PATCH format
-- **Patch Releases**: Bug fixes and minor improvements
-- **Minor Releases**: New features with backward compatibility
-- **Major Releases**: Breaking changes
+* __Semantic Versioning__: MAJOR.MINOR.PATCH format
+* __Patch Releases__: Bug fixes and minor improvements
+* __Minor Releases__: New features with backward compatibility
+* __Major Releases__: Breaking changes
 
 ### Release Process
 
@@ -450,20 +450,20 @@ pnpm run release:major
 
 ### Release Checklist
 
-1. **Tests Pass**: All unit tests successful
-2. **Build Success**: Clean compilation without errors
-3. **Linting Clean**: No linting violations
-4. **Type Check**: TypeScript validation passes
-5. **Manual Testing**: CLI functionality verified
-6. **Documentation Updated**: CHANGELOG.md updated
+1. __Tests Pass__: All unit tests successful
+2. __Build Success__: Clean compilation without errors
+3. __Linting Clean__: No linting violations
+4. __Type Check__: TypeScript validation passes
+5. __Manual Testing__: CLI functionality verified
+6. __Documentation Updated__: CHANGELOG.md updated
 
 ## Deployment and Distribution
 
 ### NPM Package Publishing
 
-- **Registry**: npmjs.com public registry
-- **Package Scope**: Scoped package name `@gsong/ccmcp`
-- **Binary Installation**: Global installation via `npm install -g @gsong/ccmcp`
+* __Registry__: npmjs.com public registry
+* __Package Scope__: Scoped package name `@gsong/ccmcp`
+* __Binary Installation__: Global installation via `npm install -g @gsong/ccmcp`
 
 ### Package Contents
 

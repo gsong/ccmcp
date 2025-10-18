@@ -34,7 +34,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [22.18.x, 24.2.x, 25.x]
 
     steps:
       - name: Checkout code
@@ -85,5 +85,8 @@ jobs:
 
       - name: Test CLI functionality
         run: |
-          node dist/index.js --help
-          node dist/index.js --version
+          HELP_OUTPUT=$(node dist/index.js --help)
+          echo "$HELP_OUTPUT" | grep -q "Usage:" || (echo "ERROR: --help produced no output" && exit 1)
+
+          VERSION_OUTPUT=$(node dist/index.js --version)
+          [ -n "$VERSION_OUTPUT" ] || (echo "ERROR: --version produced no output" && exit 1)

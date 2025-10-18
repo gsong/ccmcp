@@ -1,4 +1,11 @@
+import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 import { describe, expect, it, vi } from "vitest";
+
+const execFileAsync = promisify(execFile);
 
 describe("CLI User Experience", () => {
   describe("Help and Version Display", () => {
@@ -287,6 +294,31 @@ describe("CLI User Experience", () => {
         console.log = originalConsoleLog;
         vi.restoreAllMocks();
       }
+    });
+  });
+
+  describe("CLI Integration", () => {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const projectRoot = join(__dirname, "..", "..");
+    const cliPath = join(projectRoot, "dist", "index.js");
+
+    if (!existsSync(cliPath)) {
+      throw new Error(
+        `CLI not built. Run 'pnpm run build' before running integration tests. Missing: ${cliPath}`,
+      );
+    }
+
+    it("--help should produce output", async () => {
+      const { stdout } = await execFileAsync("node", [cliPath, "--help"]);
+
+      expect(stdout).toContain("Usage:");
+    });
+
+    it("--version should produce output", async () => {
+      const { stdout } = await execFileAsync("node", [cliPath, "--version"]);
+
+      expect(stdout.length).toBeGreaterThan(0);
     });
   });
 });

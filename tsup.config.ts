@@ -8,7 +8,7 @@ export default defineConfig({
   sourcemap: false,
   clean: true,
   external: ["ink", "react", "zod", "shell-quote"],
-  target: "node18",
+  target: "node22.18",
   shims: false,
   bundle: true,
 });
