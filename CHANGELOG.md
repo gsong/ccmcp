@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.2.1] - 2025-10-26
+
+### Features
+
+- Add zizmor security auditing for GitHub Actions workflows
+- Add CI/CD pipeline for automated npm publishing
+
+### Bug Fixes
+
+- Replace import.meta.main with Node.js 18+ compatible detection
+
+### Improvements
+
+- Run CI workflow on all pull requests
+- Remove manual npm publish scripts
+
 ## [v1.2.0] - 2025-10-15
 
 ### Bug Fixes
