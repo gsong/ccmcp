@@ -11,8 +11,16 @@ flowchart TD
     Start([User runs ccmcp]) --> Args[Parse CLI Arguments]
     Args --> Help{Help or Version?}
     Help -->|Yes| ShowHelp[Display Help/Version] --> Exit1([Exit])
-    Help -->|No| ConfigDir[Resolve Config Directory]
+    Help -->|No| Cleanup{Cleanup Command?}
 
+    Cleanup -->|Yes| RunCleanup[Run Cleanup Process]
+    RunCleanup --> Exit6([Exit with Status])
+
+    Cleanup -->|No| ClearCache{Clear Cache?}
+    ClearCache -->|Yes| RemoveCache[Remove All Cache Files]
+    RemoveCache --> Exit7([Exit Success])
+
+    ClearCache -->|No| ConfigDir[Resolve Config Directory]
     ConfigDir --> Scan[Scan for MCP Configurations]
     Scan --> Found{Configurations Found?}
     Found -->|No| DirectLaunch[Launch Claude Directly] --> Exit2([Exit])
@@ -23,14 +31,23 @@ flowchart TD
     AskLaunch -->|No| Exit3([Exit])
     AskLaunch -->|Yes| DirectLaunch
 
-    HasValid -->|Yes| DetectTTY{TTY Available?}
+    HasValid -->|Yes| LoadCache{Ignore Cache?}
+    LoadCache -->|No| LoadPrev[Load Previous Selections]
+    LoadCache -->|Yes| EmptySelection[Start with Empty Selection]
+    LoadPrev --> DetectTTY{TTY Available?}
+    EmptySelection --> DetectTTY
+
     DetectTTY -->|Yes| TUI[Show TUI Interface]
     DetectTTY -->|No| Readline[Show Readline Interface]
 
     TUI --> Selected{Configs Selected?}
     Readline --> Selected
     Selected -->|No| Exit4([User Cancelled])
-    Selected -->|Yes| Launch[Launch Claude with Configs]
+    Selected -->|Yes| SaveCache{No-Save Flag?}
+    SaveCache -->|No| SaveSelection[Save Selections to Cache]
+    SaveCache -->|Yes| SkipSave[Skip Saving]
+    SaveSelection --> Launch[Launch Claude with Configs]
+    SkipSave --> Launch
     Launch --> Exit5([Claude Running])
 ```
 
@@ -48,6 +65,8 @@ graph TB
         Scanner[mcp-scanner.ts<br/>Configuration Discovery]
         Selector[console-selector.ts<br/>Interface Selection]
         Launcher[claude-launcher.ts<br/>Process Management]
+        Cache[selection-cache.ts<br/>Selection Persistence]
+        Cleanup[cleanup.ts<br/>Cache Maintenance]
         Utils[utils.ts<br/>Shared Utilities]
     end
 
@@ -63,12 +82,15 @@ graph TB
 
     subgraph "External Systems"
         FileSystem[(File System<br/>Configuration Files)]
+        CacheDir[(Cache Directory<br/>Selection History)]
         Claude[Claude Code Process]
     end
 
     CLI --> Scanner
     CLI --> Selector
     CLI --> Launcher
+    CLI --> Cache
+    CLI --> Cleanup
 
     Scanner --> Schema
     Scanner --> FileSystem
@@ -83,13 +105,20 @@ graph TB
     Launcher --> Claude
     Launcher --> Utils
 
+    Cache --> CacheDir
+    Cleanup --> Cache
+    Cleanup --> FileSystem
+
     style CLI fill:#e1f5fe
     style Scanner fill:#f3e5f5
     style Selector fill:#f3e5f5
     style Launcher fill:#f3e5f5
+    style Cache fill:#f3e5f5
+    style Cleanup fill:#f3e5f5
     style Schema fill:#fff3e0
     style ConfigSelector fill:#e8f5e8
     style FileSystem fill:#ffebee
+    style CacheDir fill:#ffebee
     style Claude fill:#ffebee
 ```
 
@@ -136,30 +165,37 @@ stateDiagram-v2
     NoConfigs --> DirectLaunch: Launch Claude Directly
     DirectLaunch --> [*]: Process Started
 
-    HasConfigs --> TTYCheck: Check Terminal Capability
+    HasConfigs --> LoadingCache: Load Previous Selections
+    LoadingCache --> TTYCheck: Cache Loaded/Skipped
     TTYCheck --> TUIMode: TTY Available
     TTYCheck --> ReadlineMode: No TTY
 
     TUIMode --> Selecting: Show Interface
     ReadlineMode --> Prompting: Show Text Menu
 
-    Selecting --> Selecting: Navigate/Toggle
-    Selecting --> Previewing: Toggle Preview
-    Selecting --> ErrorViewing: View Invalid Configs
+    Selecting --> Selecting: Navigate (↑/↓)
+    Selecting --> Selecting: Toggle Selection (Space)
+    Selecting --> Selecting: Select All (a)
+    Selecting --> Selecting: Clear All (c)
+    Selecting --> Previewing: Toggle Preview (p)
+    Selecting --> ErrorViewing: View Invalid Configs (i)
     Selecting --> Confirming: Press Enter
     Selecting --> Cancelled: Press Q
 
-    Previewing --> Selecting: Toggle Preview Off
-    ErrorViewing --> Selecting: Hide Errors
+    Previewing --> Selecting: Toggle Preview Off (p)
+    ErrorViewing --> Selecting: Hide Errors (i)
+    ErrorViewing --> ErrorExpanded: Toggle Details (e)
+    ErrorExpanded --> ErrorViewing: Toggle Details (e)
 
     Prompting --> Validating: User Input
     Validating --> Prompting: Invalid Input
     Validating --> Confirming: Valid Selection
 
-    Confirming --> Launching: Has Selections
+    Confirming --> SavingCache: Has Selections
     Confirming --> Selecting: No Selections (TUI)
     Confirming --> Prompting: No Selections (Readline)
 
+    SavingCache --> Launching: Cache Saved/Skipped
     Launching --> [*]: Claude Started
     Cancelled --> [*]: User Exit
 ```
@@ -173,7 +209,7 @@ graph TD
     end
 
     subgraph "State Management"
-        State[React State<br/>- selectedConfigs<br/>- currentIndex<br/>- showPreview<br/>- showInvalid]
+        State[React State<br/>- selectedIndices<br/>- currentIndex<br/>- showingPreview<br/>- showingInvalidConfigs<br/>- expandedInvalidConfigs]
     end
 
     subgraph "Child Components"
@@ -182,11 +218,12 @@ graph TD
     end
 
     subgraph "User Input"
-        Keyboard[Keyboard Events<br/>- Navigation<br/>- Selection<br/>- Actions]
+        Keyboard[Keyboard Events<br/>↑/↓ Navigation<br/>Space: Toggle<br/>a: Select All<br/>c: Clear All<br/>p: Preview<br/>i: Invalid Configs<br/>e: Expand Errors<br/>Enter: Confirm<br/>q: Quit]
     end
 
     subgraph "External Data"
         Configs[Configuration Data<br/>- Valid configs<br/>- Invalid configs]
+        Cache[Previous Selections<br/>- Cached config names]
     end
 
     ConfigSelector <--> State
@@ -194,6 +231,7 @@ graph TD
     ConfigSelector --> ErrorDisplay
     Keyboard --> ConfigSelector
     Configs --> ConfigSelector
+    Cache --> ConfigSelector
     State --> Preview
     State --> ErrorDisplay
 
@@ -203,6 +241,7 @@ graph TD
     style ErrorDisplay fill:#ffebee
     style Keyboard fill:#e1f5fe
     style Configs fill:#f1f8e9
+    style Cache fill:#e1f5fe
 ```
 
 ## Process Management
@@ -222,38 +261,127 @@ sequenceDiagram
 
     Note over ccmcp: claude --mcp-config=config1.json --mcp-config=config2.json [user-args]
 
-    ccmcp->>+Shell: exec(claude command)
-    Shell->>+Claude: spawn process
-    ccmcp->>ccmcp: Setup signal handlers
-    Shell-->>-ccmcp: Process replaced
-    Note over ccmcp: ccmcp process ends
+    ccmcp->>+Shell: spawn('sh', ['-c', 'exec claude ...'])
+    Shell->>+Claude: exec syscall replaces shell
+    ccmcp->>ccmcp: Setup exit/error handlers
+
+    Note over ccmcp,Claude: ccmcp waits for Claude to exit
+
     Claude-->>User: Claude UI
+    Claude->>Shell: Exit with code
+    Shell-->>ccmcp: Exit event
+    ccmcp->>ccmcp: Exit with same code
+    ccmcp-->>-User: Process complete
 ```
 
-### Signal Handling Flow
+### Process Exit Handling Flow
 
 ```mermaid
 flowchart TD
-    Start[CCMCP Running] --> Listen[Listen for Signals]
-    Listen --> Signal{Signal Received?}
-    Signal -->|SIGINT| Interrupt[Handle SIGINT]
-    Signal -->|SIGTERM| Terminate[Handle SIGTERM]
-    Signal -->|Other| Other[Other Signal]
-    Signal -->|None| Listen
+    Start[CCMCP Running] --> Spawn[Spawn Claude Process]
+    Spawn --> Listen[Listen for Process Events]
+    Listen --> Event{Event Type?}
 
-    Interrupt --> HasChild{Has Child Process?}
-    Terminate --> HasChild
-    Other --> HasChild
+    Event -->|Exit| CheckSignal{Exit via Signal?}
+    Event -->|Error| HandleError[Handle Launch Error]
+    Event -->|None| Listen
 
-    HasChild -->|Yes| ForwardSignal[Forward Signal to Child]
-    HasChild -->|No| Cleanup[Cleanup Resources]
+    CheckSignal -->|Yes| KillSelf[Kill Self with Same Signal]
+    CheckSignal -->|No| GetCode[Get Exit Code]
 
-    ForwardSignal --> WaitChild[Wait for Child Exit]
-    WaitChild --> GetExit[Get Child Exit Code]
-    GetExit --> Cleanup
+    GetCode --> ExitCode[Exit with Claude's Code]
+    HandleError --> ExitOne[Exit with Code 1]
+    KillSelf --> End([Process Ends])
+    ExitCode --> End
+    ExitOne --> End
+```
 
-    Cleanup --> Exit[Exit with Code]
-    Exit --> End([Process Ends])
+## Cache Management
+
+### Selection Cache Flow
+
+```mermaid
+sequenceDiagram
+    participant CLI as CLI Entry Point
+    participant Cache as Selection Cache
+    participant FS as File System
+    participant User
+
+    CLI->>+Cache: getProjectDir()
+    Cache->>Cache: Check if in Git repo
+    Cache->>Cache: Handle worktrees
+    Cache-->>-CLI: projectDir
+
+    CLI->>+Cache: loadSelections(projectDir, configDir)
+    Cache->>Cache: Generate cache key (SHA256)
+    Cache->>+FS: readFile(cacheFile)
+    FS-->>-Cache: cache JSON or error
+    Cache->>Cache: Validate cache version
+    Cache->>Cache: Verify paths match
+    Cache-->>-CLI: Set<selectedNames>
+
+    User->>CLI: Make selections
+    CLI->>+Cache: saveSelections(projectDir, configDir, names)
+
+    alt No selections
+        Cache->>+FS: rm(cacheFile)
+        FS-->>-Cache: file removed
+    else Has selections
+        Cache->>+FS: mkdir(cacheDir)
+        FS-->>-Cache: directory exists
+        Cache->>+FS: writeFile(cacheFile, JSON)
+        FS-->>-Cache: file written
+    end
+
+    Cache-->>-CLI: saved
+```
+
+### Cleanup Process Flow
+
+```mermaid
+flowchart TD
+    Start[Cleanup Command] --> Scan[Scan Cache Directory]
+    Scan --> Check1[Check Stale Cache Entries]
+
+    Check1 --> Stale{Found Stale?}
+    Stale -->|Yes| Prompt1{--yes flag?}
+    Stale -->|No| Check2[Check Invalid Server References]
+
+    Prompt1 -->|Yes| Remove1[Remove Stale Entries]
+    Prompt1 -->|No| Ask1[Prompt User]
+    Ask1 -->|Confirmed| Remove1
+    Ask1 -->|Declined| Check2
+    Remove1 --> Check2
+
+    Check2 --> Invalid{Found Invalid?}
+    Invalid -->|Yes| Prompt2{--yes flag?}
+    Invalid -->|No| Check3[Check Broken Symlinks]
+
+    Prompt2 -->|Yes| Update[Update Cache Files]
+    Prompt2 -->|No| Ask2[Prompt User]
+    Ask2 -->|Confirmed| Update
+    Ask2 -->|Declined| Check3
+    Update --> Check3
+
+    Check3 --> Broken{Found Broken?}
+    Broken -->|Yes| Prompt3{--yes flag?}
+    Broken -->|No| Summary[Generate Summary]
+
+    Prompt3 -->|Yes| Remove3[Remove Symlinks]
+    Prompt3 -->|No| Ask3[Prompt User]
+    Ask3 -->|Confirmed| Remove3
+    Ask3 -->|Declined| Summary
+    Remove3 --> Summary
+
+    Summary --> DryRun{--dry-run?}
+    DryRun -->|Yes| Report[Report What Would Change]
+    DryRun -->|No| Report[Report What Changed]
+    Report --> End([Exit])
+
+    style Remove1 fill:#ffcdd2
+    style Update fill:#fff9c4
+    style Remove3 fill:#ffcdd2
+    style Report fill:#c8e6c9
 ```
 
 ## Error Handling Diagrams
@@ -351,21 +479,26 @@ journey
       Arguments parsed: 3: System
       Config directory scanned: 3: System
       Configurations validated: 3: System
+      Previous selections loaded: 4: System
 
     section Selection (TUI Mode)
       Interface loads: 4: System
+      Previous selections pre-selected: 5: System
       User navigates configs: 5: User
       User toggles selections: 5: User
       User views preview: 4: User
+      User checks invalid configs: 3: User
       User confirms selection: 5: User
 
     section Selection (Readline Mode)
       Text menu displays: 3: System
+      Previous selections indicated: 4: System
       User enters numbers: 4: User
       Selection validated: 3: System
       User confirms choice: 4: User
 
     section Launch
+      Selections saved to cache: 4: System
       Claude command built: 5: System
       Claude Code starts: 5: User
       ccmcp exits: 3: System
@@ -461,4 +594,30 @@ flowchart TD
     style Error fill:#f8bbd9
 ```
 
-These visual diagrams provide a complete understanding of the ccmcp application's architecture, data flow, user interactions, and technical implementation. They serve as both documentation and implementation guides for recreating the system.
+## Summary
+
+These visual diagrams provide a complete understanding of the ccmcp application's architecture, data flow, user interactions, and technical implementation. They document the following key features:
+
+### Core Features
+
+- **Configuration Discovery & Validation**: Automatic scanning and Zod-based validation of MCP server configurations
+- **Interactive Selection**: Both TUI (Ink-based) and readline fallback interfaces
+- **Selection Caching**: Persistent storage of user preferences per project/config-dir combination
+- **Cache Maintenance**: Cleanup command to remove stale entries, invalid references, and broken symlinks
+- **Process Management**: Seamless handoff to Claude Code with proper signal handling
+
+### Key Components
+
+- **CLI Layer**: Argument parsing, command routing, and main application flow
+- **Application Core**: Scanner, selector, launcher, cache, cleanup, and utilities
+- **Validation Layer**: Zod schemas for stdio, HTTP, and SSE server configurations
+- **TUI Layer**: React-based components with preview and error display capabilities
+- **External Systems**: File system, cache directory, and Claude Code process
+
+### User Workflows
+
+1. **Standard Selection**: Scan → Load Cache → Select → Save Cache → Launch
+2. **Cleanup Workflow**: Scan Cache → Identify Issues → Prompt User → Clean → Report
+3. **Cache Management**: Ignore cache (`-i`), skip saving (`-n`), or clear all (`--clear-cache`)
+
+These diagrams serve as both documentation and implementation guides for understanding and maintaining the system.

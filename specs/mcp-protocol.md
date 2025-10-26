@@ -29,13 +29,15 @@ MCP configuration files are JSON documents with the following top-level structur
 
 ```typescript
 interface MCPConfiguration {
-  mcpServers: Record<string, MCPServerConfig>;
+  mcpServers?: Record<string, MCPServerConfig>;
   description?: string;
 }
 ```
 
-- `mcpServers`: Object where keys are server names and values are server configurations
+- `mcpServers`: Object where keys are server names and values are server configurations (optional, defaults to empty object `{}`)
 - `description`: Optional description for the configuration file (used in UI display)
+
+**Important**: A configuration file with only a `description` field (no `mcpServers`) is considered valid and will have an empty server list.
 
 #### Server Configuration Base
 
@@ -48,6 +50,8 @@ interface MCPServerConfigBase {
 
 - `type`: Transport type (optional, defaults to 'stdio' for legacy compatibility)
 - `env`: Environment variables to pass to the server process (all values must be strings)
+
+**Note**: Environment variable values are strictly validated as strings. Numbers and booleans must be converted to strings (e.g., `"123"`, `"true"`).
 
 ## Transport Types
 
@@ -90,9 +94,13 @@ interface STDIOServerConfig extends MCPServerConfigBase {
 **Validation Rules**:
 
 - `command` must be a non-empty string
-- `args` is optional array of strings
+- `args` is optional array of strings (defaults to empty array `[]`)
 - `env` values must all be strings (not numbers or booleans)
 - Command must be executable (validation occurs at runtime)
+
+**Default Values**:
+
+- If `args` is not provided, it defaults to an empty array `[]`
 
 ### 2. HTTP Transport
 
@@ -215,61 +223,98 @@ interface LegacyServerConfig extends MCPServerConfigBase {
 
 ### Zod Schema Structure
 
-The validation is implemented using Zod with discriminated unions for type safety:
+The validation is implemented using Zod with a flexible base schema and runtime validation:
 
 ```typescript
 import { z } from "zod";
 
-// Base schema for all server types
-const baseServerSchema = z.object({
+// Base server schema that handles all transport types
+const BaseServerSchema = z.object({
   type: z.enum(["stdio", "http", "sse"]).optional(),
-  env: z.record(z.string()).optional(),
+  command: z.string().optional(),
+  args: z.array(z.string()).default([]).optional(),
+  env: z.record(z.string(), z.string()).optional(),
+  url: z.string().optional(),
+  headers: z.record(z.string(), z.string()).optional(),
 });
 
-// STDIO server schema
-const stdioServerSchema = baseServerSchema.extend({
-  type: z.literal("stdio").optional().default("stdio"),
-  command: z.string().min(1, "Command cannot be empty"),
-  args: z.array(z.string()).optional(),
-});
+// Server schema with conditional validation and transformation
+const ServerSchema = BaseServerSchema.superRefine((data, ctx) => {
+  // If no type is specified, assume stdio (legacy format)
+  const serverType = data.type || "stdio";
 
-// HTTP server schema
-const httpServerSchema = baseServerSchema.extend({
-  type: z.literal("http"),
-  url: z.string().url("Must be a valid URL"),
-  headers: z.record(z.string()).optional(),
+  if (serverType === "stdio") {
+    // Validate stdio server requirements
+    if (data.command === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.invalid_type,
+        expected: "string",
+        received: "undefined",
+        path: ["command"],
+        message: "Invalid input: expected string, received undefined",
+      });
+    } else if (data.command === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.too_small,
+        minimum: 1,
+        type: "string",
+        inclusive: true,
+        path: ["command"],
+        message: "Command cannot be empty",
+      });
+    }
+  } else if (serverType === "http" || serverType === "sse") {
+    // Validate HTTP/SSE server requirements
+    if (!data.url) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.invalid_type,
+        expected: "string",
+        received: "undefined",
+        path: ["url"],
+        message: "Invalid input: expected string, received undefined",
+      });
+    } else if (!z.string().url().safeParse(data.url).success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["url"],
+        message: "Must be a valid URL",
+      });
+    }
+  }
+}).transform((data) => {
+  // Transform to explicit format, ensuring type is always present
+  const serverType = data.type || "stdio";
+  return {
+    ...data,
+    type: serverType,
+    args: data.args || [],
+  };
 });
-
-// SSE server schema (identical to HTTP)
-const sseServerSchema = baseServerSchema.extend({
-  type: z.literal("sse"),
-  url: z.string().url("Must be a valid URL"),
-  headers: z.record(z.string()).optional(),
-});
-
-// Legacy server schema (for backward compatibility)
-const legacyServerSchema = z.object({
-  command: z.string().min(1, "Command cannot be empty"),
-  args: z.array(z.string()).optional(),
-  env: z.record(z.string()).optional(),
-});
-
-// Discriminated union for server configurations
-const serverConfigSchema = z
-  .discriminatedUnion("type", [
-    stdioServerSchema,
-    httpServerSchema,
-    sseServerSchema,
-  ])
-  .or(legacyServerSchema); // Allow legacy format
 
 // Main configuration schema
-export const mcpConfigSchema = z.object({
-  mcpServers: z.record(serverConfigSchema),
+export const McpConfigSchema = z.object({
+  mcpServers: z.record(z.string(), ServerSchema).optional().default({}),
   description: z.string().optional(),
 });
 
-export type MCPConfig = z.infer<typeof mcpConfigSchema>;
+export type McpConfigType = z.infer<typeof McpConfigSchema>;
+export type ServerConfig = z.infer<typeof ServerSchema>;
+```
+
+### Validation Result Types
+
+```typescript
+export interface ValidationResult {
+  success: boolean;
+  data?: McpConfigType;
+  errors?: ValidationError[];
+}
+
+export interface ValidationError {
+  path: string[];
+  message: string;
+  code: string;
+}
 ```
 
 ### Validation Process
@@ -282,33 +327,57 @@ try {
   const rawConfig = JSON.parse(fileContent);
 } catch (error) {
   // Handle JSON parse errors
-  return { type: "parse-error", message: error.message };
+  if (error instanceof SyntaxError) {
+    return `JSON syntax error: ${error.message}`;
+  }
+  throw error;
 }
 ```
 
 #### 2. Schema Validation
 
 ```typescript
-try {
-  const validatedConfig = mcpConfigSchema.parse(rawConfig);
-  return { type: "valid", config: validatedConfig };
-} catch (error) {
-  if (error instanceof z.ZodError) {
+// Utility function to validate MCP configuration
+export function validateMcpConfig(data: unknown): ValidationResult {
+  const result = McpConfigSchema.safeParse(data);
+
+  if (result.success) {
     return {
-      type: "validation-error",
-      errors: error.errors.map(formatZodError),
+      success: true,
+      data: result.data,
     };
   }
-  throw error;
+
+  const errors: ValidationError[] = result.error.issues.map((issue) => ({
+    path: issue.path.map(String),
+    message: issue.message,
+    code: issue.code,
+  }));
+
+  return {
+    success: false,
+    errors,
+  };
 }
 ```
 
 #### 3. Error Formatting
 
 ```typescript
-function formatZodError(error: z.ZodIssue): string {
-  const path = error.path.join(".");
-  return `${path}: ${error.message}`;
+// Utility function to format validation errors into human-readable messages
+export function formatValidationErrors(errors: ValidationError[]): string {
+  if (errors.length === 0) return "Unknown validation error";
+
+  const messages = errors.map((error) => {
+    const pathStr = error.path.length > 0 ? `at ${error.path.join(".")}: ` : "";
+    return `${pathStr}${error.message}`;
+  });
+
+  if (messages.length === 1 && messages[0]) {
+    return messages[0];
+  }
+
+  return `Multiple validation errors:\n${messages.map((msg) => `  - ${msg}`).join("\n")}`;
 }
 ```
 
@@ -336,59 +405,162 @@ function formatZodError(error: z.ZodIssue): string {
 2. **Environment Variable**: `CCMCP_CONFIG_DIR=/path/to/configs`
 3. **Default Location**: `~/.claude/mcp-configs`
 
+### Scanned Configuration Structure
+
+The scanner returns an array of `McpConfig` objects with the following structure:
+
+```typescript
+export interface McpConfig {
+  name: string; // Filename without .json extension
+  path: string; // Full absolute path to the config file
+  description?: string; // Human-readable display name
+  valid: boolean; // Whether the config passed validation
+  error?: string; // Error message if validation failed
+}
+```
+
+**Field Details**:
+
+- `name`: The base filename without extension (e.g., `"my-config"` for `my-config.json`)
+- `path`: Absolute filesystem path to the configuration file
+- `description`: For valid configs, this is the formatted display name (see Display Name Formatting). For invalid configs, this is `"Invalid config: {name}"`
+- `valid`: `true` if the file parsed and validated successfully, `false` otherwise
+- `error`: Only present when `valid` is `false`. Contains detailed error message
+
 ### File Scanning Process
 
 ```typescript
-async function scanForConfigs(configDir: string): Promise<string[]> {
-  // 1. Check if directory exists
-  if (!(await exists(configDir))) {
-    return [];
+export async function scanMcpConfigs(configDir?: string): Promise<McpConfig[]> {
+  const resolvedConfigDir =
+    configDir || join(homedir(), ".claude", "mcp-configs");
+
+  try {
+    await stat(resolvedConfigDir);
+  } catch (error: unknown) {
+    // Check if it's specifically a "not found" error (ENOENT)
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
+      throw new MissingConfigDirectoryError(resolvedConfigDir);
+    }
+    // For other stat errors, re-throw the original error
+    throw error;
   }
 
-  // 2. Read directory contents (top-level only)
-  const files = await readdir(configDir);
+  try {
+    const files = await readdir(resolvedConfigDir);
+    const jsonFiles = files.filter((file) => file.endsWith(".json"));
 
-  // 3. Filter for JSON files (exclude hidden files)
-  return files
-    .filter((file) => file.endsWith(".json"))
-    .filter((file) => !file.startsWith("."))
-    .map((file) => path.join(configDir, file));
+    // Process files in parallel for better performance
+    const configs = await Promise.all(
+      jsonFiles.map(async (file): Promise<McpConfig> => {
+        const filePath = join(resolvedConfigDir, file);
+        const name = file.replace(".json", "");
+
+        try {
+          const content = await readFile(filePath, "utf-8");
+          const parsed = JSON.parse(content);
+
+          // Schema-based validation using Zod
+          const validationResult = validateMcpConfig(parsed);
+
+          if (validationResult.success && validationResult.data) {
+            // Extract server names from the validated config
+            const servers = extractServers(validationResult.data);
+            const serverNames = Object.keys(servers);
+
+            // Generate display name using format
+            const displayName = formatConfigDisplayName(file, serverNames);
+
+            return {
+              name,
+              path: filePath,
+              description: displayName,
+              valid: true,
+            };
+          } else {
+            return {
+              name,
+              path: filePath,
+              description: `Invalid config: ${name}`,
+              valid: false,
+              error: formatValidationErrors(validationResult.errors || []),
+            };
+          }
+        } catch (error: unknown) {
+          // Handle JSON parse errors separately from validation errors
+          const errorMessage =
+            error instanceof SyntaxError
+              ? `JSON syntax error: ${error.message}`
+              : formatErrorMessage(error);
+
+          return {
+            name,
+            path: filePath,
+            description: `Invalid config: ${name}`,
+            valid: false,
+            error: errorMessage,
+          };
+        }
+      }),
+    );
+
+    return configs.sort((a, b) => a.name.localeCompare(b.name));
+  } catch (error: unknown) {
+    console.warn(`Failed to scan MCP configs: ${formatErrorMessage(error)}`);
+    return [];
+  }
 }
 ```
 
-### Parallel Validation
+**Key Behaviors**:
 
-For performance, multiple configuration files are validated in parallel:
+- All `.json` files in the config directory are processed (hidden files starting with `.` are not filtered out by this implementation)
+- Files are processed in parallel using `Promise.all()` for performance
+- Results are sorted alphabetically by the `name` field (filename without extension) using `localeCompare()`
+- Invalid configurations are included in the results with `valid: false` and an `error` field
+- If the directory read fails (after the directory exists), an empty array is returned with a warning logged
+
+### Display Name Formatting
+
+Configuration files are displayed with intelligent naming based on their content:
 
 ```typescript
-async function validateConfigs(
-  configPaths: string[],
-): Promise<ValidationResult[]> {
-  const validationPromises = configPaths.map(async (path) => {
-    try {
-      const content = await readFile(path, "utf-8");
-      const parsed = JSON.parse(content);
-      const validated = mcpConfigSchema.parse(parsed);
+export function formatConfigDisplayName(
+  filename: string,
+  serverNames: string[],
+): string {
+  // Remove .json extension from filename for display
+  const baseFilename = filename.replace(/\.json$/i, "");
 
-      return {
-        path,
-        status: "valid" as const,
-        config: validated,
-        displayName: generateDisplayName(path, validated),
-      };
-    } catch (error) {
-      return {
-        path,
-        status: "invalid" as const,
-        error: formatError(error),
-        displayName: path.basename(path, ".json"),
-      };
-    }
-  });
+  if (serverNames.length === 0) {
+    return baseFilename;
+  }
 
-  return Promise.all(validationPromises);
+  if (serverNames.length === 1 && serverNames[0] === baseFilename) {
+    // Single server matching filename - show only server name
+    return serverNames[0];
+  }
+
+  if (serverNames.length === 1) {
+    // Single server not matching filename - show filename → server-name
+    return `${baseFilename} → ${serverNames[0]}`;
+  }
+
+  // Multiple servers - show filename → server1, server2, ...
+  return `${baseFilename} → ${serverNames.join(", ")}`;
 }
 ```
+
+**Display Name Examples**:
+
+- File: `test-server.json` with server `test-server` → displays as `test-server`
+- File: `config.json` with server `different-server` → displays as `config → different-server`
+- File: `multiple.json` with servers `alpha-server`, `beta-server`, `gamma-server` → displays as `multiple → alpha-server, beta-server, gamma-server`
+- File: `empty.json` with no servers → displays as `empty`
 
 ## Configuration Examples
 
@@ -468,11 +640,36 @@ async function validateConfigs(
 
 ## Error Handling and Recovery
 
+### Custom Error Types
+
+#### MissingConfigDirectoryError
+
+A specialized error thrown when the configuration directory does not exist:
+
+```typescript
+export class MissingConfigDirectoryError extends Error {
+  readonly directoryPath: string;
+
+  constructor(directoryPath: string) {
+    super(`Config directory not found: ${directoryPath}`);
+    this.directoryPath = directoryPath;
+    this.name = "MissingConfigDirectoryError";
+  }
+}
+```
+
+**Behavior**:
+
+- Thrown when the specified config directory is not found (ENOENT error)
+- Contains the path to the missing directory for easy debugging
+- Different from other filesystem errors (permissions, etc.) which are re-thrown
+
 ### Graceful Degradation
 
 - **Partial Failures**: Valid configurations are used even if some fail validation
 - **Missing Files**: Configurations that can't be read are marked as invalid but don't stop the process
 - **Invalid JSON**: Parse errors are collected and displayed to the user with actionable feedback
+- **Missing Directory**: Throws `MissingConfigDirectoryError` immediately (not gracefully handled)
 
 ### Error Display
 

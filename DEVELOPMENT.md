@@ -92,7 +92,20 @@ src/
 │   ├── mcp-config-schema.test.ts # Schema validation tests
 │   ├── utils.test.ts # Utility function tests
 │   ├── cleanup.test.ts # Cleanup command tests
-│   └── selection-cache.test.ts # Cache management tests
+│   ├── selection-cache.test.ts # Cache management tests
+│   ├── mcp-scanner.test.ts # MCP scanner tests
+│   ├── cli-ux.test.ts # CLI UX tests
+│   ├── claude-launcher.test.ts # Claude launcher tests
+│   ├── config-selection-ui.test.ts # Config selection UI tests
+│   ├── ConfigSelector.test.tsx # ConfigSelector component tests
+│   └── __helpers__/  # Test helper utilities
+│       ├── index.ts  # Helper exports
+│       ├── async.ts  # Async utilities
+│       ├── child-process.ts # Process mocking
+│       ├── temp-dir.ts # Temporary directory utilities
+│       ├── tty.ts    # TTY mocking
+│       ├── ink.ts    # Ink testing utilities
+│       └── readline.ts # Readline mocking
 └── tui/              # React/Ink TUI components
     ├── index.ts      # TUI component exports
     ├── ConfigSelector.tsx    # Main TUI config selection interface
@@ -111,7 +124,7 @@ scripts/
 - **Schema Validation (`schemas/mcp-config.ts`)**: Zod-based schemas for validating MCP config structure with detailed error messages, supporting both modern and legacy formats (type field optional, defaults to "stdio")
 - **Selection Cache (`selection-cache.ts`)**: Manages persistent caching of config selections per project directory, with support for XDG cache directories on Linux/macOS and AppData on Windows
 - **Cleanup (`cleanup.ts`)**: Provides cleanup functionality to remove stale cache entries, invalid server references, and broken symlinks with dry-run and interactive modes
-- **Test Suite (`__tests__/`)**: Comprehensive unit tests for schema validation, cache management, cleanup operations, and utility functions using Vitest
+- **Test Suite (`__tests__/`)**: Comprehensive unit tests for schema validation, cache management, cleanup operations, MCP scanner, CLI UX, Claude launcher, config selection UI, and TUI components using Vitest with test helpers for mocking
 - **Console Selector (`console-selector.ts`)**: Manages config selection with TTY detection and TUI/readline fallback
 - **TUI Components (`tui/`)**: React/Ink-based terminal user interface with modern navigation and visual feedback
 - **Claude Launcher (`claude-launcher.ts`)**: Manages Claude Code process spawning with selected configs
@@ -134,6 +147,12 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs on:
 - Pull requests targeting `main`
 
 ### CI Jobs
+
+**Security Audit** (runs on ubuntu-latest):
+
+1. Checkout code
+2. Run zizmor security analysis on GitHub Actions workflows
+3. Report security findings
 
 **Quality Checks** (runs on Node.js 18.x, 20.x, 22.x):
 
@@ -200,6 +219,7 @@ To enable automated publishing, configure Trusted Publishers on npmjs.com:
 - **TypeScript**: Type checking
 - **Vitest**: Modern unit testing framework
 - **tsup**: TypeScript bundler for building the project
+- **zizmor**: Security auditing for GitHub Actions workflows
 
 ### Libraries and Frameworks
 
@@ -240,6 +260,11 @@ The project includes both unit tests and manual CLI testing. Before contributing
    - Utility functions for error formatting
    - Selection cache management (load, save, clear)
    - Cleanup operations (stale entries, invalid references, broken symlinks)
+   - MCP scanner functionality (discovery and validation)
+   - CLI UX behavior and interactions
+   - Claude launcher process management
+   - Config selection UI components
+   - ConfigSelector TUI component
 
 #### Manual Testing
 

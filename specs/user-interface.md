@@ -16,14 +16,16 @@ The ccmcp application provides two interface modes with automatic fallback to en
 The application automatically detects terminal capabilities and selects the appropriate interface:
 
 ```typescript
-function canUseTUI(): boolean {
-  return process.stdout.isTTY && process.stdin.isTTY && !process.env.CI;
+function isTTY(): boolean {
+  return process.stdin.isTTY && process.stdout.isTTY;
 }
 
-if (canUseTUI()) {
-  await showTUISelector(configs);
+if (isTTY()) {
+  // Use Ink TUI
+  await selectConfigsWithTUI(configs);
 } else {
-  await showReadlineSelector(configs);
+  // Use readline interface
+  await selectConfigsReadline(configs);
 }
 ```
 
@@ -31,7 +33,6 @@ if (canUseTUI()) {
 
 - `process.stdout.isTTY` - Terminal supports output formatting
 - `process.stdin.isTTY` - Terminal supports interactive input
-- `!process.env.CI` - Not running in CI environment
 
 **Fallback Scenarios**:
 
@@ -48,31 +49,30 @@ if (canUseTUI()) {
 #### Configuration List
 
 - **Layout**: Vertical scrollable list of available configurations
-- **Selection Indicators**: Visual checkboxes (☑/☐) for selected/unselected items
-- **Current Item Highlight**: Different background color for currently focused item
-- **Status Icons**: Visual indicators for configuration state
-  - ✓ Valid configuration
-  - ✗ Invalid configuration
-  - 🔍 Preview enabled
+- **Selection Indicators**: Text-based checkboxes `[x]` for selected, `[ ]` for unselected items
+- **Current Item Highlight**: Inverse colors (bold text) for currently focused item
+- **Previously Selected Indicator**: Dim text showing "(previously selected)" for configs selected in last session
 
 #### Preview Panel
 
 - **Toggle**: Optional side panel showing configuration file content
-- **Content**: JSON formatted with basic syntax highlighting
-- **Responsive**: Adapts size based on terminal dimensions
-- **Scrolling**: Supports vertical scrolling for large files
+- **Content**: JSON formatted (no syntax highlighting, plain text)
+- **Responsive**: Fixed size (50 width, 20 height)
+- **Scrolling**: Truncated display with "..." indicator for long content
+- **Border**: Green for valid configs, red for invalid
 
-#### Status Bar
+#### Footer Bar
 
-- **Selection Count**: Shows "X of Y selected"
-- **Help Text**: Context-sensitive keyboard shortcut reminders
-- **Error Count**: Number of invalid configurations when present
+- **Selection Count**: Shows "Selected: X config(s)"
+- **Selected Names**: Blue text showing comma-separated list of selected config names
+- **Border**: Single-line box with gray border and padding
 
-#### Error Display
+#### Invalid Configs Display
 
-- **Collapsible**: Can be expanded/collapsed to show invalid configurations
-- **Error Details**: File path and specific validation error messages
-- **Visual Indicators**: Color-coded error types (parse vs validation)
+- **Toggle**: Optional separate section showing invalid configurations (press 'i')
+- **Error Details**: Expandable/collapsible with 'e' key
+- **Visual Indicators**: Red text with ✗ symbol
+- **Expanded View**: Shows error details in bordered box with file path
 
 ### Keyboard Navigation
 
@@ -106,73 +106,78 @@ if (canUseTUI()) {
 #### Color Scheme
 
 ```
-Selected Item:       Green background, white text
-Current Item:        Blue background, white text
-Valid Config:        White text
-Invalid Config:      Red text, dimmed
-Preview Panel:       Gray background, light text
-Status Bar:          Inverse colors (background as foreground)
-Error Messages:      Red text
-Help Text:           Dim/gray text
+Selected Checkbox:   [x] text
+Unselected Checkbox: [ ] text
+Current Item:        Inverse colors, bold text
+Valid Config:        Default text color
+Invalid Config:      Red text
+Preview Panel Border: Green (valid) or red (invalid)
+Preview Content:     Blue for config description, cyan for "Loading..."
+Footer Border:       Gray
+Selected Names:      Blue text
+Error Section:       Red text for errors, yellow for file path
+Help Text:           Default text color
+Previously Selected: Dim color
 ```
 
 #### Layout Structure
 
 ```
-┌─ Configuration Selector ──────────────┬─ Preview Panel ─────┐
-│ ☑ filesystem (Local filesystem)       │ {                   │
-│ ☐ database (PostgreSQL server)        │   "mcpServers": {   │
-│ ☑ weather-api (Weather service)       │     "filesystem": { │
-│ ☐ invalid-config (Parse error)        │       "type": "...  │
-│                                        │     }               │
-│ ──────── Invalid Configurations ───── │   }                 │
-│ ✗ broken.json: Invalid JSON syntax    │ }                   │
-│ ✗ missing.json: Required field missing│                     │
-├────────────────────────────────────────┴─────────────────────┤
-│ 2 of 4 selected • p: preview • q: quit • Enter: launch       │
-└───────────────────────────────────────────────────────────────┘
+Available MCP Configs - ccmcp v1.2.1
+Use ↑/↓ to navigate, Space to select/deselect, Enter to confirm
+Keys: (a)ll, (c)lear, (p)review, (i)nvalid configs, (q)uit
+
+Valid Configs (3):
+[ ] filesystem → server1
+[x] database → server2 (previously selected)
+[ ] weather-api → api-server
+
+Invalid Configs (2):               [shown only if 'i' pressed]
+  ✗ broken - Invalid config: broken (Press 'e' to see error details)
+  ✗ missing - Invalid config: missing
+
+┌─────────────────────────────────────────────────┐
+│ Selected: 1 config(s) - database                │
+└─────────────────────────────────────────────────┘
 ```
 
 #### Responsive Layout
 
-- **Minimum Width**: 80 columns for basic functionality
-- **Minimum Height**: 10 rows for minimal interface
-- **Preview Panel**: Auto-hides when terminal width < 120 columns
-- **Error Section**: Auto-collapses when terminal height < 20 rows
+- **Preview Panel**: Fixed size (50 width, 20 height), displays side-by-side when enabled
+- **Main Panel**: Takes 50% width when preview is shown, 100% when hidden
+- **Invalid Configs**: Full-width section below main content when toggled on
 
 ### State Management
 
 #### Configuration State
 
 ```typescript
-interface TUIState {
-  configs: MCPConfig[];
-  invalidConfigs: InvalidConfig[];
-  selectedConfigs: Set<string>;
+interface ConfigSelectorState {
+  validConfigs: McpConfig[];
+  invalidConfigs: McpConfig[];
+  selectedIndices: Set<number>;
   currentIndex: number;
-  showPreview: boolean;
-  showInvalid: boolean;
-  expandedErrors: boolean;
+  showingPreview: boolean;
+  showingInvalidConfigs: boolean;
+  expandedInvalidConfigs: Set<number>;
 }
 ```
 
 #### State Transitions
 
-```mermaid
-stateDiagram-v2
-    [*] --> Loading
-    Loading --> Selecting: Configs Loaded
-    Selecting --> Previewing: Toggle Preview
-    Previewing --> Selecting: Toggle Preview
-    Selecting --> ViewingErrors: Toggle Invalid
-    ViewingErrors --> Selecting: Toggle Invalid
-    Selecting --> Confirming: Press Enter
-    Confirming --> Launching: Has Selections
-    Confirming --> Selecting: No Selections
-    Selecting --> Exiting: Press Q
-    Launching --> [*]
-    Exiting --> [*]
-```
+The TUI uses React hooks (useState) for state management:
+
+- **selectedIndices**: Initialized from previouslySelected configs
+- **currentIndex**: Tracks currently focused item (starts at 0)
+- **showingPreview**: Toggle for preview panel visibility
+- **showingInvalidConfigs**: Toggle for invalid configs section
+- **expandedInvalidConfigs**: Set of indices for expanded error details
+
+#### Exit Behavior
+
+- **Press 'q' or Ctrl+C**: Exit without launching Claude
+- **Press Enter**: Confirm selection and launch Claude with selected configs
+- **Both cases**: Call Ink's `exit()` function to clean up TUI
 
 ## Readline Mode (Fallback Interface)
 
@@ -211,28 +216,30 @@ Launch Claude with selected configurations? [Y/n]: y
 
 1. **Display**: List all valid configurations with numbers
 2. **Show Invalid**: Display invalid configurations (informational only)
-3. **Prompt**: Ask for selection using numbers/ranges
-4. **Validate**: Check input format and range validity
-5. **Confirm**: Show selected configurations for review
-6. **Launch**: Final confirmation before launching Claude
+3. **Show Instructions**: Display input format options
+4. **Prompt**: Ask for selection using numbers (comma-separated)
+5. **Parse**: Parse input and filter valid selections
+6. **Return**: Return selected configs (no confirmation prompt)
 
 #### Input Parsing
 
 ```typescript
-function parseSelection(input: string, maxIndex: number): number[] {
+function parseSelection(input: string, validConfigs: McpConfig[]): McpConfig[] {
   // Examples:
-  // "1,3,5" -> [1, 3, 5]
-  // "1-3,5" -> [1, 2, 3, 5]
-  // "all" -> [1, 2, 3, ..., maxIndex]
-  // "" -> []
+  // "1,3,5" -> [config1, config3, config5]
+  // "all" or "ALL" -> all valid configs
+  // "none" or "NONE" -> []
+  // "" -> [] (or previously selected configs if available)
+  // Note: Ranges (e.g., "1-3") are NOT supported
+  // Out-of-range and invalid numbers are silently filtered out
 }
 ```
 
 #### Error Messages
 
-- **Invalid Numbers**: "Invalid selection: 'abc' is not a number"
-- **Out of Range**: "Selection 5 is out of range (max: 4)"
-- **Invalid Format**: "Invalid format. Use comma-separated numbers or ranges (1,3,5-7)"
+- **No Valid Selections**: "No valid selections found. Launching without configs..."
+- **Invalid Input**: "Invalid input. Launching without configs..." (caught exception)
+- **All Invalid Configs**: "No valid configs found. Launching Claude Code without MCP configs..."
 
 ## User Experience Guidelines
 
@@ -266,63 +273,99 @@ function parseSelection(input: string, maxIndex: number): number[] {
 
 ### No Configurations Found
 
-```
-No MCP configurations found in ~/.claude/mcp-configs
+In `main()` function:
 
-To get started:
-1. Create configuration files in the config directory
-2. Use --config-dir to specify a different location
-3. Set CCMCP_CONFIG_DIR environment variable
-
-Launching Claude directly without MCP configurations...
 ```
+No MCP configs found. Launching Claude Code directly...
+```
+
+Then launches Claude Code with empty config list.
+
+### Config Directory Missing
+
+Throws `MissingConfigDirectoryError` with message:
+
+```
+Error: Config directory not found: /path/to/missing/directory
+```
+
+Returns exit code 1.
 
 ### All Configurations Invalid
 
+In **TUI Mode**:
+
 ```
-Found 3 configuration files, but all have errors:
+Available MCP Configs - ccmcp v1.2.1
+...
+No valid MCP configs found in /path/to/config/dir
+Press any key to launch Claude Code without configs...
+[Shows first invalid config with ErrorDisplay component]
+```
 
-✗ broken.json: Invalid JSON syntax at line 5
-✗ missing.json: Missing required field 'command'
-✗ bad-url.json: Invalid URL format
+In **Readline Mode**:
 
-Fix the configuration errors or use --config-dir to specify
-a directory with valid configurations.
+```
+Available MCP configs:
+======================
 
-Launch Claude anyway? [y/N]: n
+Invalid configs (cannot be selected):
+   ✗ config1 - Invalid config: config1 (error details)
+   ✗ config2 - Invalid config: config2 (error details)
+
+No valid configs found. Launching Claude Code without MCP configs...
 ```
 
 ### Partial Failure
 
-- **Valid Configs Available**: Show valid configurations, mention invalid ones
-- **User Choice**: Allow proceeding with valid configurations only
-- **Error Details**: Optional detailed view of invalid configurations
+- **Valid Configs Available**: Shows both valid and invalid configs separately
+- **Invalid Configs Toggle**: In TUI, press 'i' to show/hide invalid configs
+- **Error Details**: In TUI, press 'e' to expand/collapse error details when viewing invalid configs
+- **User Choice**: User can select from valid configs only; invalid ones cannot be selected
 
 ### Terminal Size Constraints
 
-- **Too Small**: Graceful degradation with simplified interface
-- **Minimum Requirements**: Clear message if terminal too small to function
-- **Responsive Design**: Layout adapts to available space
+- **No explicit handling**: Ink adapts to terminal size naturally
+- **Fixed Preview Size**: Preview panel uses fixed 50x20 size
+- **Flexible Layout**: Main panel takes 50% or 100% width based on preview toggle
 
 ## Integration Points
 
 ### CLI Arguments
 
-- `--help`: Show usage information and exit
-- `--version`: Show version and exit
-- `--config-dir`: Override default configuration directory
+- `-h, --help`: Show usage information and exit
+- `-v, --version`: Show version and exit
+- `--config-dir <dir>`: Override default configuration directory
+- `-i, --ignore-cache`: Skip loading previously selected configs
+- `-n, --no-save`: Don't save selections (ephemeral mode)
+- `--clear-cache`: Clear all cached selections and exit
+- `cleanup`: Remove stale cache entries and broken symlinks
+  - `--dry-run`: Preview what would be cleaned without making changes
+  - `--yes`: Skip all prompts and automatically proceed
 - Passthrough arguments: Forward remaining args to Claude Code
 
 ### Environment Variables
 
-- `CCMCP_CONFIG_DIR`: Default configuration directory
+- `CCMCP_CONFIG_DIR`: Alternative to --config-dir option
+
+### Cache Management
+
+The application caches selected configurations per project and config directory:
+
+- **Cache Location**:
+  - Linux/macOS: `~/.cache/ccmcp/` (or `$XDG_CACHE_HOME/ccmcp/`)
+  - Windows: `%LOCALAPPDATA%\ccmcp\`
+- **Cache Key**: SHA-256 hash (first 16 chars) of `projectDir::configDir`
+- **Cache File**: `selections-{hash}.json`
+- **Project Detection**: Git repository root (handles worktrees correctly)
+- **Previously Selected**: Automatically restored unless `--ignore-cache` is used
+- **Auto-clear**: Cache deleted when selection is empty (no configs selected)
 
 ### Exit Codes
 
-- `0`: Success - Claude launched
-- `1`: Error - Invalid arguments or system error
-- `2`: User cancelled - Quit without launching
-- `130`: Interrupted - SIGINT received
+- `0`: Success - Claude launched or help/version displayed
+- `1`: Error - Invalid arguments, system error, or cleanup errors
+- Exit codes for user cancellation are handled by process exit
 
 ## Testing Considerations
 
@@ -333,12 +376,29 @@ Launch Claude anyway? [y/N]: n
 - Both TTY and non-TTY environments
 - Different numbers of configurations (0, 1, many)
 - Mix of valid and invalid configurations
+- Cache persistence across sessions
+- Git worktree scenarios
+- Cleanup command with dry-run and yes flags
 
 ### Automated Testing
 
 - Mock TTY detection for consistent test environment
-- Keyboard input simulation for TUI testing
-- Process communication for readline testing
+- Keyboard input simulation for TUI testing (via Ink's useInput hook)
+- Mock readline interface for non-TTY testing
 - Error condition testing with invalid configurations
+- Cache operations (load, save, clear)
+- Signal handling (SIGINT, SIGTERM)
+- Input validation and parsing edge cases
+- Combined short flags (e.g., `-in` for `-i -n`)
+
+### Test Helpers
+
+The test suite includes helpers for:
+
+- Setting up mock Ink render
+- Setting up mock readline interface
+- Simulating TTY/non-TTY environments
+- Creating temporary directories
+- Mocking child process execution
 
 This user interface specification provides complete guidance for implementing both interface modes with consistent behavior and robust error handling.

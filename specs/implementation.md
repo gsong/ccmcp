@@ -17,10 +17,11 @@ This document provides comprehensive technical implementation details including 
 
 ```json
 {
-  "react": "^19.1.1",
+  "react": "^19.2.0",
   "ink": "^6.3.1",
-  "zod": "^4.1.11",
-  "@types/react": "^19.1.13"
+  "zod": "^4.1.12",
+  "@types/react": "^19.2.2",
+  "shell-quote": "^1.8.3"
 }
 ```
 
@@ -30,17 +31,22 @@ This document provides comprehensive technical implementation details including 
 - **Ink**: Terminal interface rendering engine
 - **Zod**: Runtime schema validation with TypeScript integration
 - **@types/react**: TypeScript definitions for React
+- **shell-quote**: Safe argument escaping for shell commands
 
 #### Development Dependencies
 
 ```json
 {
-  "typescript": "^5.9.2",
-  "tsx": "^4.20.5",
-  "@biomejs/biome": "^2.2.4",
-  "@types/node": "^24.5.2",
+  "typescript": "^5.9.3",
+  "tsx": "^4.20.6",
+  "@biomejs/biome": "^2.2.6",
+  "@types/node": "^24.8.1",
+  "@types/shell-quote": "^1.7.5",
   "npm-run-all2": "^8.0.4",
-  "prettier": "^3.6.2"
+  "prettier": "^3.6.2",
+  "tsup": "^8.5.0",
+  "vitest": "^4.0.0",
+  "ink-testing-library": "^4.0.0"
 }
 ```
 
@@ -50,18 +56,24 @@ This document provides comprehensive technical implementation details including 
 - **tsx**: Development execution of TypeScript files
 - **Biome**: Fast linting and formatting
 - **@types/node**: Node.js type definitions
+- **@types/shell-quote**: TypeScript definitions for shell-quote
 - **npm-run-all2**: Script orchestration and parallelization
 - **Prettier**: Code formatting for non-JavaScript files
+- **tsup**: Fast TypeScript bundler for production builds
+- **vitest**: Modern test framework with TypeScript support
+- **ink-testing-library**: Testing utilities for Ink components
 
 ### Built-in Node.js Modules
 
 ```typescript
 import { parseArgs } from "node:util";
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, stat, readlink, unlink } from "node:fs/promises";
+import { realpathSync } from "node:fs";
 import { homedir } from "node:os";
-import { join, resolve, basename } from "node:path";
-import { spawn, exec } from "node:child_process";
-import { createReadline } from "node:readline/promises";
+import { join, resolve, basename, dirname } from "node:path";
+import { spawn } from "node:child_process";
+import { createInterface } from "node:readline";
+import { fileURLToPath } from "node:url";
 ```
 
 ## Project Structure
@@ -72,21 +84,32 @@ import { createReadline } from "node:readline/promises";
 ccmcp/
 ├── src/
 │   ├── __tests__/           # Unit tests
+│   │   ├── __helpers__/    # Test helper utilities
+│   │   └── *.test.ts       # Test files
 │   ├── schemas/             # Zod validation schemas
 │   ├── tui/                 # React/Ink components
+│   │   ├── ConfigSelector.tsx
+│   │   ├── ConfigPreview.tsx
+│   │   ├── ErrorDisplay.tsx
+│   │   └── index.ts
 │   ├── index.ts            # CLI entry point
 │   ├── mcp-scanner.ts      # Configuration discovery
 │   ├── console-selector.ts # Interface selection
 │   ├── claude-launcher.ts  # Process management
+│   ├── selection-cache.ts  # Selection caching
+│   ├── cleanup.ts          # Cache cleanup utilities
 │   └── utils.ts            # Shared utilities
 ├── dist/                   # Compiled JavaScript output
 ├── specs/                  # Comprehensive specifications
 ├── scripts/                # Development and build scripts
-├── assets/                 # Static assets and documentation
+│   ├── release.js          # Release automation
+│   └── generate-release-notes.js
 ├── package.json            # Package configuration
 ├── tsconfig.json          # TypeScript configuration
+├── tsup.config.ts         # Build configuration
+├── vitest.config.ts       # Test configuration
 ├── biome.json             # Linting and formatting config
-└── CLAUDE.md              # Project-specific instructions
+└── .claude/CLAUDE.md      # Project-specific instructions
 ```
 
 ### Source File Organization
@@ -96,24 +119,30 @@ ccmcp/
 ```typescript
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
-import { main } from "./main.js";
+import { launchClaudeCode } from "./claude-launcher.js";
+import { selectConfigs } from "./console-selector.js";
+import { scanMcpConfigs } from "./mcp-scanner.js";
 
-// CLI argument parsing and error handling
-// Delegates to main() for application logic
+// CLI argument parsing with passthrough support
+// Handles help, version, cleanup, and main selector flow
+// Supports caching of selections per project
 ```
 
 #### Core Modules
 
-- **Scanner**: Configuration file discovery and validation
-- **Selector**: User interface and interaction handling
-- **Launcher**: Process spawning and lifecycle management
-- **Utils**: Shared utilities and error formatting
+- **mcp-scanner.ts**: Configuration file discovery and validation
+- **console-selector.ts**: User interface (Ink TUI or readline fallback)
+- **claude-launcher.ts**: Process spawning and lifecycle management
+- **selection-cache.ts**: Per-project selection caching
+- **cleanup.ts**: Cache and symlink cleanup utilities
+- **utils.ts**: Shared utilities and error formatting
+- **schemas/mcp-config.ts**: Zod schema validation for MCP configs
 
 #### React Components (`src/tui/`)
 
-- **ConfigSelector**: Main selection interface
-- **ConfigPreview**: File content preview panel
-- **ErrorDisplay**: Validation error display
+- **ConfigSelector.tsx**: Main selection interface with keyboard navigation
+- **ConfigPreview.tsx**: File content preview panel
+- **ErrorDisplay.tsx**: Validation error display
 - **index.ts**: Component exports
 
 ## Build System Configuration
@@ -123,60 +152,69 @@ import { main } from "./main.js";
 ```json
 {
   "compilerOptions": {
+    "lib": ["ES2022"],
     "target": "ES2022",
-    "module": "Node16",
-    "moduleResolution": "Node16",
-    "outDir": "dist",
-    "rootDir": "src",
-    "strict": true,
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
     "jsx": "react-jsx",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true
+    "jsxImportSource": "react",
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": ["src/**/*"],
-  "exclude": ["dist", "node_modules", "__tests__"]
+  "exclude": ["node_modules", "dist"]
 }
 ```
 
 **Key Configuration Decisions**:
 
 - **ES2022 Target**: Modern JavaScript features with Node 18+ support
-- **Node16 Module Resolution**: Proper ESM handling with file extensions
-- **Strict Mode**: Maximum type safety
-- **JSX Support**: React component compilation
-- **Source Maps**: Development debugging support
+- **ESNext Module + Bundler Resolution**: Modern module handling optimized for tsup bundler
+- **noEmit**: TypeScript used only for type checking; tsup handles compilation
+- **Strict Mode**: Maximum type safety with additional strictness flags
+- **JSX Support**: React component compilation with react-jsx transform
+- **No Unused Variables**: Enforces clean code practices
 
 ### Biome Configuration (`biome.json`)
 
 ```json
 {
+  "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
-      "complexity": {
-        "noExcessiveCognitiveComplexity": "warn"
-      },
-      "style": {
-        "useConsistentArrayType": "error"
-      }
+      "recommended": true
     }
   },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
-    "indentWidth": 2,
-    "lineWidth": 100
+    "indentWidth": 2
   },
-  "organizeImports": {
-    "enabled": true
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "trailingCommas": "all"
+    }
   }
 }
 ```
+
+**Key Configuration Decisions**:
+
+- **Recommended Rules**: Use Biome's recommended linting rules
+- **Consistent Formatting**: 2-space indentation, double quotes, trailing commas
+- **Fast Performance**: Biome is significantly faster than ESLint + Prettier
 
 ### Package Configuration (`package.json`)
 
@@ -185,12 +223,13 @@ import { main } from "./main.js";
 ```json
 {
   "bin": {
-    "ccmcp": "dist/index.js"
+    "ccmcp": "./dist/index.js"
   },
   "type": "module",
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "packageManager": "pnpm@10.17.0"
 }
 ```
 
@@ -199,21 +238,32 @@ import { main } from "./main.js";
 ```json
 {
   "scripts": {
-    "build": "npm-run-all lint type-check compile",
-    "compile": "tsc --build",
     "dev": "tsx src/index.ts",
-    "test": "node --test src/**/*.test.ts",
-    "lint": "biome lint src/",
-    "lint:fix": "biome lint --write src/",
-    "format": "biome format --write src/",
+    "test": "vitest run",
+    "build": "run-s lint type-check _compile",
+    "fix": "run-s lint:fix format type-check",
+    "release:patch": "node scripts/release.js patch",
+    "release:minor": "node scripts/release.js minor",
+    "release:major": "node scripts/release.js major",
+    "lint": "biome check src scripts",
+    "lint:fix": "biome check --write src scripts",
+    "format": "run-s _format:biome _format:prettier",
     "type-check": "tsc --noEmit",
-    "fix": "npm-run-all lint:fix format type-check",
-    "release:patch": "npm version patch && npm run build && npm publish",
-    "release:minor": "npm version minor && npm run build && npm publish",
-    "release:major": "npm version major && npm run build && npm publish"
+    "_compile": "tsup",
+    "_format:biome": "biome format --write src scripts",
+    "_format:prettier": "prettier --write '**/*.{md,json,yaml,yml}'"
   }
 }
 ```
+
+**Key Scripts**:
+
+- **dev**: Run CLI in development mode using tsx
+- **test**: Run tests using Vitest
+- **build**: Full build pipeline (lint → type-check → compile with tsup)
+- **fix**: Auto-fix all code quality issues
+- **release:\***: Automated release scripts using custom release.js
+- **lint/format**: Separate linting (Biome) and formatting (Biome + Prettier for docs)
 
 ## Development Workflow
 
@@ -248,10 +298,35 @@ pnpm run type-check  # TypeScript validation
 pnpm run build
 
 # Build steps breakdown:
-# 1. lint       - Code quality validation
+# 1. lint       - Code quality validation using Biome
 # 2. type-check - TypeScript compilation check
-# 3. compile    - JavaScript generation
+# 3. _compile   - JavaScript bundling using tsup
 ```
+
+### Build Configuration (`tsup.config.ts`)
+
+```typescript
+export default defineConfig({
+  entry: ["src/index.ts"],
+  format: ["esm"],
+  dts: true,
+  splitting: false,
+  sourcemap: false,
+  clean: true,
+  external: ["ink", "react", "zod", "shell-quote"],
+  target: "node18",
+  shims: false,
+  bundle: true,
+});
+```
+
+**Key Decisions**:
+
+- **Single Entry Point**: Bundles from src/index.ts
+- **ESM Format**: Pure ES modules output
+- **Type Declarations**: Generates .d.ts files
+- **External Dependencies**: ink, react, zod, shell-quote not bundled
+- **No Splitting**: Single output file for CLI
 
 ### Testing Strategy
 
@@ -259,107 +334,185 @@ pnpm run build
 # Run all tests
 pnpm run test
 
-# Run specific test files
-node --test src/__tests__/mcp-config-schema.test.ts
-node --test src/__tests__/utils.test.ts
+# Run tests in watch mode (during development)
+pnpm exec vitest
+
+# Run tests with coverage
+pnpm exec vitest --coverage
 ```
 
 ## Testing Implementation
 
 ### Unit Testing Framework
 
-- **Built-in Node.js Test Runner**: No external dependencies
-- **Assert Module**: Node.js built-in assertions
-- **Test Discovery**: `src/**/*.test.ts` pattern
+- **Vitest**: Modern, fast test runner with TypeScript support
+- **Ink Testing Library**: Utilities for testing React/Ink components
+- **Test Helpers**: Custom helpers in `__tests__/__helpers__/` for mocking
+- **Test Discovery**: `src/**/__tests__/**/*.test.ts` pattern
+
+### Vitest Configuration (`vitest.config.ts`)
+
+```typescript
+export default defineConfig({
+  test: {
+    environment: "node",
+    globals: true,
+    include: ["src/**/__tests__/**/*.test.{ts,tsx}"],
+  },
+});
+```
 
 ### Test Structure Example
 
 ```typescript
-import { test, describe } from "node:test";
-import assert from "node:assert";
-import { mcpConfigSchema } from "../schemas/mcp-config.js";
+import { describe, expect, it } from "vitest";
+import { validateMcpConfig } from "../schemas/mcp-config.js";
 
-describe("MCP Configuration Schema", () => {
-  test("validates valid STDIO configuration", () => {
-    const config = {
-      mcpServers: {
-        test: {
-          type: "stdio",
-          command: "node",
-          args: ["server.js"],
+describe("MCP Configuration Schema Validation", () => {
+  describe("Valid configurations", () => {
+    it("should validate STDIO server configuration", () => {
+      const config = {
+        mcpServers: {
+          browser: {
+            type: "stdio",
+            command: "mcp-server-browsermcp",
+            args: [],
+            env: {},
+          },
         },
-      },
-    };
+      };
 
-    const result = mcpConfigSchema.safeParse(config);
-    assert.strictEqual(result.success, true);
-  });
+      const result = validateMcpConfig(config);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeTruthy();
+      }
+    });
 
-  test("rejects invalid configuration", () => {
-    const config = {
-      mcpServers: {
-        test: {
-          type: "stdio",
-          // Missing required 'command' field
+    it("should validate HTTP server configuration", () => {
+      const config = {
+        mcpServers: {
+          context7: {
+            type: "http",
+            url: "https://mcp.context7.com/mcp",
+            headers: {
+              CONTEXT7_API_KEY: "test-key",
+            },
+          },
         },
-      },
-    };
+      };
 
-    const result = mcpConfigSchema.safeParse(config);
-    assert.strictEqual(result.success, false);
+      const result = validateMcpConfig(config);
+      expect(result.success).toBe(true);
+    });
   });
 });
 ```
 
 ### Test Categories
 
-1. **Schema Validation Tests**: Comprehensive validation rule testing
-2. **Utility Function Tests**: Error formatting and helper functions
-3. **Integration Tests**: End-to-end workflow testing
-4. **CLI Argument Tests**: Argument parsing validation
+1. **Schema Validation Tests** (`mcp-config-schema.test.ts`): Comprehensive Zod schema validation
+2. **Utility Function Tests** (`utils.test.ts`): Error formatting and helper functions
+3. **Scanner Tests** (`mcp-scanner.test.ts`): Config discovery and validation
+4. **Cache Tests** (`selection-cache.test.ts`): Selection caching logic
+5. **Cleanup Tests** (`cleanup.test.ts`): Cache cleanup utilities
+6. **Launcher Tests** (`claude-launcher.test.ts`): Process spawning logic
+7. **UI Tests** (`config-selection-ui.test.ts`, `cli-ux.test.ts`): TUI and readline interfaces
+
+### Test Helpers (`__tests__/__helpers__/`)
+
+- **async.ts**: Async utilities and delays
+- **child-process.ts**: Process mocking utilities
+- **temp-dir.ts**: Temporary directory management
+- **tty.ts**: TTY simulation helpers
+- **ink.ts**: Ink component testing helpers
+- **readline.ts**: Readline interface mocking
 
 ### Test Coverage Goals
 
-- **Schema Validation**: 100% of validation rules tested
+- **Schema Validation**: All validation rules and edge cases tested
 - **Error Handling**: All error paths covered
 - **Utility Functions**: Complete function coverage
-- **Edge Cases**: Boundary conditions and error states
+- **UI Components**: Interactive behavior tested with ink-testing-library
+- **Integration**: End-to-end workflow testing
+
+## CLI Features
+
+### Selection Caching
+
+The tool implements per-project selection caching to remember which MCP configs were previously selected:
+
+- **Cache Location**: `~/.cache/ccmcp/` (or `$XDG_CACHE_HOME/ccmcp/`)
+- **Cache Key**: Based on current working directory (project-specific)
+- **Cache Content**: Selected config names and config directory path
+- **Flags**:
+  - `--ignore-cache` / `-i`: Skip loading cached selections
+  - `--no-save` / `-n`: Don't save current selections (ephemeral mode)
+  - `--clear-cache`: Clear all cached selections
+
+### Cleanup Command
+
+The `cleanup` subcommand removes stale cache entries and broken symlinks:
+
+```bash
+ccmcp cleanup [--dry-run] [--yes]
+```
+
+Features:
+
+- Removes cache entries for configs that no longer exist
+- Cleans up broken server references in cache files
+- Removes broken symlinks in config directory
+- `--dry-run`: Preview changes without making them
+- `--yes`: Skip confirmation prompts
+
+### Argument Passthrough
+
+The CLI separates ccmcp-specific flags from Claude Code arguments:
+
+- **ccmcp flags**: `--help`, `--version`, `--config-dir`, `--ignore-cache`, `--clear-cache`, `--no-save`, `--cleanup`, `--dry-run`, `--yes`
+- **All other arguments**: Passed through to Claude Code unchanged
+- **Combined short flags**: Supports `-in` for `-i -n`
+
+Example:
+
+```bash
+ccmcp -i --project /path/to/project
+# -i is for ccmcp, --project passes to claude
+```
+
+### TTY Detection
+
+The selector automatically adapts to the environment:
+
+- **TTY Environment**: Uses Ink-based interactive TUI
+- **Non-TTY Environment**: Falls back to readline-based selection
 
 ## Error Handling Strategy
 
 ### Error Types and Handling
 
 ```typescript
-// System errors (file access, permissions)
-class SystemError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-  ) {
-    super(message);
-    this.name = "SystemError";
+// Missing config directory error
+class MissingConfigDirectoryError extends Error {
+  readonly directoryPath: string;
+  constructor(directoryPath: string) {
+    super(`Config directory not found: ${directoryPath}`);
+    this.directoryPath = directoryPath;
+    this.name = "MissingConfigDirectoryError";
   }
 }
 
-// Validation errors (schema failures)
-class ValidationError extends Error {
-  constructor(
-    message: string,
-    public errors: string[],
-  ) {
-    super(message);
-    this.name = "ValidationError";
-  }
-}
-
-// User input errors
-class UserError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "UserError";
-  }
-}
+// Validation errors from Zod schemas
+// Formatted using formatValidationErrors() from schemas/mcp-config.ts
 ```
+
+**Error Handling Patterns**:
+
+- **MissingConfigDirectoryError**: Special handling for missing config directory
+- **Validation Errors**: Formatted using Zod error messages
+- **JSON Parse Errors**: Separate handling with clear syntax error messages
+- **Process Errors**: Child process spawn errors handled gracefully
 
 ### Error Recovery Patterns
 
@@ -373,58 +526,71 @@ class UserError extends Error {
 ### Async/Await Patterns
 
 ```typescript
-// Parallel configuration processing
-const configResults = await Promise.all(
-  configPaths.map(async (path) => {
-    try {
-      const content = await readFile(path, "utf-8");
-      return await validateConfig(content, path);
-    } catch (error) {
-      return { path, error: formatError(error) };
-    }
+// Parallel configuration processing in mcp-scanner.ts
+const configs = await Promise.all(
+  jsonFiles.map(async (file): Promise<McpConfig> => {
+    const filePath = join(resolvedConfigDir, file);
+    const content = await readFile(filePath, "utf-8");
+    const parsed = JSON.parse(content);
+    const validationResult = validateMcpConfig(parsed);
+    // ... process result
   }),
 );
 ```
 
+**Key Patterns**:
+
+- **Parallel File Reading**: All config files read concurrently
+- **Parallel Validation**: Zod schema validation runs in parallel
+- **Error Isolation**: Individual file errors don't block others
+
 ### Memory Management
 
-- **Streaming**: Large files processed incrementally
-- **Cleanup**: Explicit resource disposal
-- **Minimal Footprint**: Only load necessary data into memory
+- **Minimal Footprint**: Only config file metadata kept in memory
+- **On-demand Preview**: File contents loaded only when preview is shown
+- **Bundled Output**: Single bundled file reduces startup overhead
 
 ### Startup Performance
 
-- **Lazy Loading**: Components loaded on demand
-- **Parallel Operations**: File scanning and validation
-- **Minimal Dependencies**: Small production bundle
+- **Fast Bundler**: tsup provides near-instant startup
+- **Parallel Operations**: File scanning and validation run concurrently
+- **Optimized Dependencies**: External dependencies reduce bundle size
 
 ## Security Considerations
 
 ### Input Validation
 
 ```typescript
-// Path sanitization
-function sanitizePath(inputPath: string): string {
-  const resolved = resolve(inputPath);
-  if (!resolved.startsWith(homedir())) {
-    throw new Error("Path must be within user home directory");
+// Config directory validation (from index.ts)
+export function validateConfigDir(configDir: string): void {
+  if (configDir.trim() === "") {
+    throw new Error("Config directory cannot be empty");
   }
-  return resolved;
-}
-
-// Command argument validation
-function validateCommand(command: string): void {
-  if (command.includes("..") || command.includes("/")) {
-    throw new Error("Command cannot contain path traversal");
+  if (configDir.includes("\0")) {
+    throw new Error("Config directory contains invalid characters");
   }
 }
 ```
 
+### Command Argument Escaping
+
+The project uses the `shell-quote` library for safe command argument escaping:
+
+```typescript
+import { quote } from "shell-quote";
+
+// Safe argument construction for child processes
+const args = quote([configPath, ...passthroughArgs]);
+```
+
+This prevents command injection attacks when passing user-provided arguments to child processes.
+
 ### Process Security
 
-- **Minimal Privileges**: Child processes spawn with limited access
-- **Environment Isolation**: Controlled environment variable passing
-- **Signal Handling**: Proper cleanup on termination
+- **Spawn vs Exec**: Uses `spawn()` instead of `exec()` to avoid shell interpretation
+- **Argument Array**: Passes arguments as array, not concatenated strings
+- **Signal Handling**: Proper cleanup on SIGINT/SIGTERM
+- **Environment Variables**: Only passes necessary environment variables
 
 ## Release Management
 
@@ -437,25 +603,48 @@ function validateCommand(command: string): void {
 
 ### Release Process
 
+The project uses a custom automated release script (`scripts/release.js`) that handles:
+
+1. Working directory validation (ensures clean git state)
+2. Version bumping using npm version
+3. Full build pipeline execution
+4. Git tag creation
+5. Publication to npm registry
+6. Git push with tags
+
 ```bash
-# Patch release (0.1.0 -> 0.1.1)
+# Patch release (1.2.1 -> 1.2.2)
 pnpm run release:patch
 
-# Minor release (0.1.1 -> 0.2.0)
+# Minor release (1.2.1 -> 1.3.0)
 pnpm run release:minor
 
-# Major release (0.2.0 -> 1.0.0)
+# Major release (1.2.1 -> 2.0.0)
 pnpm run release:major
 ```
 
+**Release Script Features**:
+
+- Pre-flight validation (clean working directory, correct branch)
+- Automated build verification
+- Safe git operations
+- Automatic tag creation and pushing
+- Error handling with rollback capability
+
 ### Release Checklist
 
-1. **Tests Pass**: All unit tests successful
-2. **Build Success**: Clean compilation without errors
-3. **Linting Clean**: No linting violations
-4. **Type Check**: TypeScript validation passes
-5. **Manual Testing**: CLI functionality verified
-6. **Documentation Updated**: CHANGELOG.md updated
+The release script automatically validates:
+
+1. **Clean Working Directory**: No uncommitted changes
+2. **Tests Pass**: All Vitest tests successful
+3. **Build Success**: Clean compilation without errors
+4. **Linting Clean**: No Biome violations
+5. **Type Check**: TypeScript validation passes
+
+Manual steps:
+
+6. **Functional Testing**: Verify CLI functionality with real configs
+7. **Documentation**: Update CHANGELOG.md if needed
 
 ## Deployment and Distribution
 
@@ -467,15 +656,19 @@ pnpm run release:major
 
 ### Package Contents
 
+The published package (controlled by `"files"` in package.json) includes:
+
 ```
 dist/
-├── index.js           # CLI entry point
-├── index.js.map       # Source map
-├── *.js              # Compiled modules
-├── *.js.map          # Source maps
-├── *.d.ts            # Type definitions
-└── *.d.ts.map        # Type definition maps
+├── index.js           # Bundled CLI entry point (ESM)
+├── index.d.ts         # Type definitions
+├── index.d.mts        # Module type definitions
+└── index.d.ts.map     # Type definition source maps
+README.md
+LICENSE
 ```
+
+Note: With tsup bundling, the entire application is bundled into a single `index.js` file, with external dependencies (React, Ink, Zod, shell-quote) loaded from node_modules.
 
 ### Installation Verification
 

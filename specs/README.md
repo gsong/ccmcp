@@ -4,7 +4,7 @@ This directory contains comprehensive specification documents for the **ccmcp** 
 
 ## Project Overview
 
-**ccmcp** is a CLI tool that intelligently discovers, validates, and selects MCP (Model Context Protocol) server configurations for Claude Code. It provides both a modern terminal user interface (TUI) and fallback text-based interface for selecting which MCP servers to activate when launching Claude Code.
+**ccmcp** (Claude Code MCP Selector) is a CLI tool that intelligently discovers, validates, and selects MCP (Model Context Protocol) server configurations for Claude Code. It provides both a modern terminal user interface (TUI) and fallback text-based interface for selecting which MCP servers to activate when launching Claude Code.
 
 ### Core Functionality
 
@@ -12,6 +12,9 @@ This directory contains comprehensive specification documents for the **ccmcp** 
 - **Validation**: Uses comprehensive schema validation for configuration files
 - **Selection**: Interactive multi-select interface for choosing configurations
 - **Launch**: Spawns Claude Code with only selected MCP server configurations
+- **Cache Management**: Remembers selections per project for faster launches
+- **Cleanup**: Removes stale cache entries and broken symlinks
+- **Git Worktree Support**: Shares selections across worktrees of the same repository
 
 ## Specification Documents
 
@@ -54,9 +57,10 @@ Each specification document includes:
 
 - **Runtime**: Node.js 18+ with ES Modules
 - **Language**: TypeScript with strict type checking
-- **UI Framework**: React + Ink for terminal interfaces
-- **Validation**: Zod for runtime schema validation
-- **Build Tools**: TypeScript compiler, Biome for linting
+- **UI Framework**: React 19+ and Ink 6+ for terminal interfaces
+- **Validation**: Zod 4+ for runtime schema validation
+- **Build Tools**: tsup for bundling, Biome for linting, Prettier for formatting
+- **Testing**: Vitest 4+ with ink-testing-library
 - **Package Manager**: pnpm
 
 ## Getting Started
