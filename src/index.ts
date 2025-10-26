@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
+import { realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { launchClaudeCode } from "./claude-launcher.js";
 import { cleanupCache } from "./cleanup.js";
@@ -270,7 +272,26 @@ export async function main(): Promise<number> {
   }
 }
 
-if (import.meta.main) {
+// Detect if this module is the main entry point
+// Works on Node.js 18+ (import.meta.url has been available since Node 12)
+const isMain = (() => {
+  try {
+    const scriptArg = process.argv[1];
+    if (!scriptArg) {
+      return false;
+    }
+    // process.argv[1] is the script path, might be a symlink (npm global installs)
+    const scriptPath = realpathSync(scriptArg);
+    // import.meta.url is always the canonical file:// URL
+    const modulePath = fileURLToPath(import.meta.url);
+    return scriptPath === modulePath;
+  } catch (_error) {
+    // If comparison fails (e.g., file not found), assume not main
+    return false;
+  }
+})();
+
+if (isMain) {
   main().then((exitCode) => {
     process.exit(exitCode);
   });
