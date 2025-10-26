@@ -38,5 +38,8 @@ jobs:
       - name: Build project
         run: pnpm run build
 
+      - name: Update npm for OIDC support
+        run: npm install -g npm@latest
+
       - name: Publish to npm
-        run: pnpm publish --access public --provenance --no-git-checks
+        run: pnpm publish --access public --no-git-checks
