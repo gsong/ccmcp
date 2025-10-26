@@ -15,8 +15,10 @@ vi.mock("node:child_process", () => ({
 }));
 
 describe("Claude Code Launch Behavior", () => {
-  let mockConsoleLog: ReturnType<typeof vi.spyOn>;
-  let mockConsoleError: ReturnType<typeof vi.spyOn>;
+  // biome-ignore lint/suspicious/noExplicitAny: Mock spies need specific typing
+  let mockConsoleLog: any;
+  // biome-ignore lint/suspicious/noExplicitAny: Mock spies need specific typing
+  let mockConsoleError: any;
   // biome-ignore lint/suspicious/noExplicitAny: Mock spies need specific typing
   let mockProcessExit: any;
   // biome-ignore lint/suspicious/noExplicitAny: Mock spies need specific typing

@@ -20,8 +20,10 @@ vi.mock("node:readline", () => ({
 }));
 
 describe("Config Selection User Interface", () => {
-  let mockConsoleLog: ReturnType<typeof vi.spyOn>;
-  let mockConsoleError: ReturnType<typeof vi.spyOn>;
+  // biome-ignore lint/suspicious/noExplicitAny: Mock spies need specific typing
+  let mockConsoleLog: any;
+  // biome-ignore lint/suspicious/noExplicitAny: Mock spies need specific typing
+  let mockConsoleError: any;
   let originalIsTTY: boolean | undefined;
 
   // Test fixtures
