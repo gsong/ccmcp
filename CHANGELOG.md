@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+Looking at these conventional commits, they're all maintenance tasks (chore/docs) with no user-facing features or bug fixes. Here are the release notes:
+
+## [v1.2.2] - 2025-11-13
+
+### Improvements
+
+- Update all dependencies to latest versions
+- Migrate from Vitest 3.2.4 to Vitest 4.0.3
+- Update specifications to reflect current implementation
+
 ## [v1.2.1] - 2025-10-26
 
 ### Features
