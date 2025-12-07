@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 Looking at these conventional commits, they're all maintenance tasks (chore/docs) with no user-facing features or bug fixes. Here are the release notes:
 
+## [v1.3.0] - 2025-12-07
+
+### Features
+
+- Add actionlint for GitHub Actions workflow linting
+- Update minimum Node.js version to 20 and add Node.js 24 support
+
+### Improvements
+
+- Reorganize npm scripts for clarity
+- Upgrade all dependencies
+- Pin GitHub Actions to commit SHAs with actions-up
+- Prioritize major updates over minor and patch in Renovate
+
 ## [v1.2.2] - 2025-11-13
 
 ### Improvements
