@@ -6,7 +6,7 @@ This document provides comprehensive technical implementation details including 
 
 ### Runtime Environment
 
-- **Node.js**: Minimum version 18.0.0
+- **Node.js**: Minimum version 20.0.0
 - **Platform Support**: Cross-platform (macOS, Linux, Windows)
 - **Module System**: ES Modules (ESM) with `.js` extensions
 - **Package Manager**: pnpm (recommended), npm compatible
@@ -178,7 +178,7 @@ import { scanMcpConfigs } from "./mcp-scanner.js";
 
 **Key Configuration Decisions**:
 
-- **ES2022 Target**: Modern JavaScript features with Node 18+ support
+- **ES2022 Target**: Modern JavaScript features with Node 20+ support
 - **ESNext Module + Bundler Resolution**: Modern module handling optimized for tsup bundler
 - **noEmit**: TypeScript used only for type checking; tsup handles compilation
 - **Strict Mode**: Maximum type safety with additional strictness flags
@@ -227,7 +227,7 @@ import { scanMcpConfigs } from "./mcp-scanner.js";
   },
   "type": "module",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "packageManager": "pnpm@10.17.0"
 }
