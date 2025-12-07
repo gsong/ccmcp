@@ -1,2 +1,5 @@
 [tools]
 actionlint = "latest"
+"cargo:zizmor" = "latest"
+pnpm = "latest"
+rust = "latest"
