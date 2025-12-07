@@ -6,7 +6,7 @@ This document contains information for developers working on ccmcp.
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - pnpm 10.17.0+ (package manager)
 - Claude Code installed and available in PATH
 - Terminal with TTY support for TUI testing
@@ -154,7 +154,7 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs on:
 2. Run zizmor security analysis on GitHub Actions workflows
 3. Report security findings
 
-**Quality Checks** (runs on Node.js 18.x, 20.x, 22.x):
+**Quality Checks** (runs on Node.js 20+):
 
 1. Checkout code and setup pnpm 10.17.0
 2. Install dependencies with frozen lockfile

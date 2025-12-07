@@ -87,7 +87,7 @@ ccmcp cleanup --yes           # Skip prompts, automatically proceed
 ## Requirements
 
 - **Claude Code** must be installed and available in your PATH
-- **Node.js** 18+ for running the tool
+- **Node.js** 20+ for running the tool
 - **Terminal with TTY support** for the interactive TUI (falls back to text prompts otherwise)
 - **MCP configs** should be JSON files in your configured directory (default: `~/.claude/mcp-configs/`)
 

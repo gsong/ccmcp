@@ -55,7 +55,7 @@ Each specification document includes:
 
 ## Technology Stack
 
-- **Runtime**: Node.js 18+ with ES Modules
+- **Runtime**: Node.js 20+ with ES Modules
 - **Language**: TypeScript with strict type checking
 - **UI Framework**: React 19+ and Ink 6+ for terminal interfaces
 - **Validation**: Zod 4+ for runtime schema validation
