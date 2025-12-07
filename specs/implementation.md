@@ -11,58 +11,6 @@ This document provides comprehensive technical implementation details including 
 - **Module System**: ES Modules (ESM) with `.js` extensions
 - **Package Manager**: pnpm (recommended), npm compatible
 
-### Core Dependencies
-
-#### Production Dependencies
-
-```json
-{
-  "react": "^19.2.0",
-  "ink": "^6.3.1",
-  "zod": "^4.1.12",
-  "@types/react": "^19.2.2",
-  "shell-quote": "^1.8.3"
-}
-```
-
-**Dependency Justification**:
-
-- **React**: Component-based architecture for TUI
-- **Ink**: Terminal interface rendering engine
-- **Zod**: Runtime schema validation with TypeScript integration
-- **@types/react**: TypeScript definitions for React
-- **shell-quote**: Safe argument escaping for shell commands
-
-#### Development Dependencies
-
-```json
-{
-  "typescript": "^5.9.3",
-  "tsx": "^4.20.6",
-  "@biomejs/biome": "^2.2.6",
-  "@types/node": "^24.8.1",
-  "@types/shell-quote": "^1.7.5",
-  "npm-run-all2": "^8.0.4",
-  "prettier": "^3.6.2",
-  "tsup": "^8.5.0",
-  "vitest": "^4.0.0",
-  "ink-testing-library": "^4.0.0"
-}
-```
-
-**Dependency Justification**:
-
-- **TypeScript**: Type safety and compile-time error checking
-- **tsx**: Development execution of TypeScript files
-- **Biome**: Fast linting and formatting
-- **@types/node**: Node.js type definitions
-- **@types/shell-quote**: TypeScript definitions for shell-quote
-- **npm-run-all2**: Script orchestration and parallelization
-- **Prettier**: Code formatting for non-JavaScript files
-- **tsup**: Fast TypeScript bundler for production builds
-- **vitest**: Modern test framework with TypeScript support
-- **ink-testing-library**: Testing utilities for Ink components
-
 ### Built-in Node.js Modules
 
 ```typescript
@@ -156,6 +104,7 @@ import { scanMcpConfigs } from "./mcp-scanner.js";
     "target": "ES2022",
     "module": "ESNext",
     "moduleDetection": "force",
+    "allowJs": true,
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -168,8 +117,10 @@ import { scanMcpConfigs } from "./mcp-scanner.js";
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
+    "erasableSyntaxOnly": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
@@ -183,6 +134,7 @@ import { scanMcpConfigs } from "./mcp-scanner.js";
 - **noEmit**: TypeScript used only for type checking; tsup handles compilation
 - **Strict Mode**: Maximum type safety with additional strictness flags
 - **JSX Support**: React component compilation with react-jsx transform
+- **erasableSyntaxOnly**: Ensures type annotations can be erased without runtime impact
 - **No Unused Variables**: Enforces clean code practices
 
 ### Biome Configuration (`biome.json`)
