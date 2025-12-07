@@ -37,6 +37,7 @@
     "release:minor": "node scripts/release.js minor",
     "release:major": "node scripts/release.js major",
     "lint": "biome check src scripts",
+    "lint:actions": "mise exec -- actionlint",
     "lint:fix": "biome check --write src scripts",
     "format": "run-s _format:biome _format:prettier",
     "type-check": "tsc --noEmit",
@@ -49,23 +50,22 @@
   },
   "packageManager": "pnpm@10.17.0",
   "devDependencies": {
-    "@biomejs/biome": "^2.3.8",
-    "@types/node": "^24.10.1",
+    "@biomejs/biome": "^2.3.4",
+    "@types/node": "^24.10.0",
     "@types/shell-quote": "^1.7.5",
-    "actions-up": "^1.6.0",
     "ink-testing-library": "^4.0.0",
     "npm-run-all2": "^8.0.4",
-    "prettier": "^3.7.3",
-    "tsup": "^8.5.1",
-    "tsx": "^4.21.0",
+    "prettier": "^3.6.2",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.14"
+    "vitest": "^4.0.7"
   },
   "dependencies": {
-    "@types/react": "^19.2.7",
-    "ink": "^6.5.1",
+    "@types/react": "^19.2.2",
+    "ink": "^6.4.0",
     "react": "^19.2.0",
     "shell-quote": "^1.8.3",
-    "zod": "^4.1.13"
+    "zod": "^4.1.12"
   }
 }
