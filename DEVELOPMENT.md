@@ -51,9 +51,6 @@ pnpm run lint
 # Fix linting issues automatically
 pnpm run lint:fix
 
-# Format code (Biome for TypeScript/JavaScript, Prettier for other files)
-pnpm run format
-
 # Run type checking
 pnpm run type-check
 
