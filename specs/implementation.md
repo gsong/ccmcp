@@ -240,18 +240,20 @@ import { scanMcpConfigs } from "./mcp-scanner.js";
   "scripts": {
     "dev": "tsx src/index.ts",
     "test": "vitest run",
-    "build": "run-s lint type-check _compile",
-    "fix": "run-s lint:fix format type-check",
+    "build": "run-s lint type-check _build:compile",
+    "fix": "run-s lint:fix _fix:prettier type-check",
+    "lint": "biome check src scripts",
+    "lint:actions": "mise exec -- actionlint",
+    "lint:fix": "biome check --write src scripts",
+    "type-check": "tsc --noEmit",
     "release:patch": "node scripts/release.js patch",
     "release:minor": "node scripts/release.js minor",
     "release:major": "node scripts/release.js major",
-    "lint": "biome check src scripts",
-    "lint:fix": "biome check --write src scripts",
-    "format": "run-s _format:biome _format:prettier",
-    "type-check": "tsc --noEmit",
-    "_compile": "tsup",
-    "_format:biome": "biome format --write src scripts",
-    "_format:prettier": "prettier --write '**/*.{md,json,yaml,yml}'"
+    "_build:compile": "tsup",
+    "_build:clean": "rm -rf dist",
+    "_fix:prettier": "prettier --write '**/*.{md,json,yaml,yml}'",
+    "_release:generate-notes": "node scripts/generate-release-notes.js",
+    "_release:clean-files": "rm -f .tmp-tag-notes.txt .tmp-release-prompt.txt"
   }
 }
 ```
@@ -261,9 +263,10 @@ import { scanMcpConfigs } from "./mcp-scanner.js";
 - **dev**: Run CLI in development mode using tsx
 - **test**: Run tests using Vitest
 - **build**: Full build pipeline (lint → type-check → compile with tsup)
-- **fix**: Auto-fix all code quality issues
+- **fix**: Auto-fix all code quality issues (lint:fix → prettier → type-check)
+- **lint**: Code linting with Biome
+- **lint:actions**: GitHub Actions workflow linting with actionlint
 - **release:\***: Automated release scripts using custom release.js
-- **lint/format**: Separate linting (Biome) and formatting (Biome + Prettier for docs)
 
 ## Development Workflow
 
@@ -287,7 +290,6 @@ pnpm run fix
 # Individual steps
 pnpm run lint        # Code linting
 pnpm run lint:fix    # Auto-fix lint issues
-pnpm run format      # Code formatting
 pnpm run type-check  # TypeScript validation
 ```
 
