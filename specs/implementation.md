@@ -181,7 +181,7 @@ import { scanMcpConfigs } from "./mcp-scanner.js";
   "engines": {
     "node": ">=20.0.0"
   },
-  "packageManager": "pnpm@10.17.0"
+  "packageManager": "pnpm@10.25.0"
 }
 ```
 
