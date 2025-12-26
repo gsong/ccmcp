@@ -38,7 +38,7 @@ importers:
         version: 1.7.5
       actions-up:
         specifier: ^1.7.0
-        version: 1.7.0
+        version: 1.8.0
       ink-testing-library:
         specifier: ^4.0.0
         version: 4.0.0(@types/react@19.2.7)
@@ -89,28 +89,24 @@ packages:
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@biomejs/cli-linux-arm64@2.3.9':
     resolution: {integrity: sha512-BXBB6HbAgZI6T6QB8q6NSwIapVngqArP6K78BqkMerht7YjL6yWctqfeTnJm0qGF2bKBYFexslrbV+VTlM2E6g==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@biomejs/cli-linux-x64-musl@2.3.9':
     resolution: {integrity: sha512-FUkb/5beCIC2trpqAbW9e095X4vamdlju80c1ExSmhfdrojLZnWkah/XfTSixKb/dQzbAjpD7vvs6rWkJ+P07Q==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@biomejs/cli-linux-x64@2.3.9':
     resolution: {integrity: sha512-PjYuv2WLmvf0WtidxAkFjlElsn0P6qcvfPijrqu1j+3GoW3XSQh3ywGu7gZ25J25zrYj3KEovUjvUZB55ATrGw==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@biomejs/cli-win32-arm64@2.3.9':
     resolution: {integrity: sha512-w48Yh/XbYHO2cBw8B5laK3vCAEKuocX5ItGXVDAqFE7Ze2wnR00/1vkY6GXglfRDOjWHu2XtxI0WKQ52x1qxEA==}
@@ -327,67 +323,56 @@ packages:
     resolution: {integrity: sha512-UPMMNeC4LXW7ZSHxeP3Edv09aLsFUMaD1TSVW6n1CWMECnUIJMFFB7+XC2lZTdPtvB36tYC0cJWc86mzSsaviw==}
     cpu: [arm]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-arm-musleabihf@4.53.4':
     resolution: {integrity: sha512-H8uwlV0otHs5Q7WAMSoyvjV9DJPiy5nJ/xnHolY0QptLPjaSsuX7tw+SPIfiYH6cnVx3fe4EWFafo6gH6ekZKA==}
     cpu: [arm]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-linux-arm64-gnu@4.53.4':
     resolution: {integrity: sha512-BLRwSRwICXz0TXkbIbqJ1ibK+/dSBpTJqDClF61GWIrxTXZWQE78ROeIhgl5MjVs4B4gSLPCFeD4xML9vbzvCQ==}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-arm64-musl@4.53.4':
     resolution: {integrity: sha512-6bySEjOTbmVcPJAywjpGLckK793A0TJWSbIa0sVwtVGfe/Nz6gOWHOwkshUIAp9j7wg2WKcA4Snu7Y1nUZyQew==}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-linux-loong64-gnu@4.53.4':
     resolution: {integrity: sha512-U0ow3bXYJZ5MIbchVusxEycBw7bO6C2u5UvD31i5IMTrnt2p4Fh4ZbHSdc/31TScIJQYHwxbj05BpevB3201ug==}
     cpu: [loong64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-ppc64-gnu@4.53.4':
     resolution: {integrity: sha512-iujDk07ZNwGLVn0YIWM80SFN039bHZHCdCCuX9nyx3Jsa2d9V/0Y32F+YadzwbvDxhSeVo9zefkoPnXEImnM5w==}
     cpu: [ppc64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-gnu@4.53.4':
     resolution: {integrity: sha512-MUtAktiOUSu+AXBpx1fkuG/Bi5rhlorGs3lw5QeJ2X3ziEGAq7vFNdWVde6XGaVqi0LGSvugwjoxSNJfHFTC0g==}
     cpu: [riscv64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-musl@4.53.4':
     resolution: {integrity: sha512-btm35eAbDfPtcFEgaXCI5l3c2WXyzwiE8pArhd66SDtoLWmgK5/M7CUxmUglkwtniPzwvWioBKKl6IXLbPf2sQ==}
     cpu: [riscv64]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-linux-s390x-gnu@4.53.4':
     resolution: {integrity: sha512-uJlhKE9ccUTCUlK+HUz/80cVtx2RayadC5ldDrrDUFaJK0SNb8/cCmC9RhBhIWuZ71Nqj4Uoa9+xljKWRogdhA==}
     cpu: [s390x]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-x64-gnu@4.53.4':
     resolution: {integrity: sha512-jjEMkzvASQBbzzlzf4os7nzSBd/cvPrpqXCUOqoeCh1dQ4BP3RZCJk8XBeik4MUln3m+8LeTJcY54C/u8wb3DQ==}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-x64-musl@4.53.4':
     resolution: {integrity: sha512-lu90KG06NNH19shC5rBPkrh6mrTpq5kviFylPBXQVpdEu0yzb0mDgyxLr6XdcGdBIQTH/UAhDJnL+APZTBu1aQ==}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-openharmony-arm64@4.53.4':
     resolution: {integrity: sha512-dFDcmLwsUzhAm/dn0+dMOQZoONVYBtgik0VuY/d5IJUUb787L3Ko/ibvTvddqhb3RaB7vFEozYevHN4ox22R/w==}
@@ -469,8 +454,8 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  actions-up@1.7.0:
-    resolution: {integrity: sha512-nbvCOgCAwGNxY5jJVkBTcTju6jOG6IuEIFcL4Ya2eEsprtYi2c8LqOcSP7mHQ/+fUJvjaEggK9j5WTtt56T2kQ==}
+  actions-up@1.8.0:
+    resolution: {integrity: sha512-PRCbZ7JIQAt8RjsZ5WBAq5SX3mKQaRHHCULPWBf/GZPV1pBawu4uFlw39zjEeoVOdt4vTZTgyzZ7mKhP1aX5+Q==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
 
@@ -1353,7 +1338,7 @@ snapshots:
 
   acorn@8.15.0: {}
 
-  actions-up@1.7.0:
+  actions-up@1.8.0:
     dependencies:
       cac: 6.7.14
       enquirer: 2.4.1
