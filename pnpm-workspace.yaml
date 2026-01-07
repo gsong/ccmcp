@@ -1,0 +1,11 @@
+allowBuilds:
+  esbuild: true
+
+minimumReleaseAge: 10080
+
+overrides:
+  "@types/node": "^20"
+
+strictDepBuilds: true
+
+trustPolicy: no-downgrade

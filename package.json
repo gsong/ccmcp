@@ -11,12 +11,16 @@
   ],
   "license": "MIT",
   "author": "George Song",
+  "homepage": "https://github.com/gsong/ccmcp",
   "repository": {
     "type": "git",
     "url": "https://github.com/gsong/ccmcp.git"
   },
-  "homepage": "https://github.com/gsong/ccmcp",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@10.27.0",
   "bin": {
     "ccmcp": "./dist/index.js"
   },
@@ -62,14 +66,5 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.15"
-  },
-  "packageManager": "pnpm@10.27.0",
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "@types/node": "^20"
-    }
   }
 }
