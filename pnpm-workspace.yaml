@@ -4,8 +4,14 @@ allowBuilds:
 minimumReleaseAge: 10080
 
 overrides:
-  "@types/node": "^20"
+  # vite/vitest have peer dependency on @types/node@^22, but latest is 25.x
+  # Pin to 22.x until they update their peer deps
+  "@types/node": "^22"
 
 strictDepBuilds: true
 
 trustPolicy: no-downgrade
+
+trustPolicyExclude:
+  - chokidar@4.0.3
+  - undici-types@6.21.0
