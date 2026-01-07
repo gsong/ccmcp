@@ -4,16 +4,15 @@
   "minimumReleaseAge": "7 days",
   "packageRules": [
     {
-      "matchUpdateTypes": ["major"],
-      "prPriority": 3
+      "description": "Group all non-major JS dependencies into a single PR",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "js-dependencies"
     },
     {
-      "matchUpdateTypes": ["minor"],
-      "prPriority": 2
-    },
-    {
-      "matchUpdateTypes": ["patch"],
-      "prPriority": 1
+      "description": "Group all GitHub Actions into a single PR",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions"
     }
   ]
 }
