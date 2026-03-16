@@ -48,14 +48,14 @@
     "_release:clean-files": "rm -f .tmp-tag-notes.txt .tmp-release-prompt.txt"
   },
   "dependencies": {
-    "ink": "^6.7.0",
+    "ink": "^6.8.0",
     "react": "^19.2.4",
     "shell-quote": "^1.8.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.0",
-    "@types/node": "^25.2.3",
+    "@biomejs/biome": "^2.4.6",
+    "@types/node": "^22.19.15",
     "@types/react": "^19.2.14",
     "@types/shell-quote": "^1.7.5",
     "actions-up": "^1.12.0",
