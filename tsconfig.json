@@ -3,6 +3,8 @@
     // Environment setup & latest features
     "lib": ["ES2022"],
     "target": "ES2022",
+    "types": ["node"],
+    "ignoreDeprecations": "6.0",
     "module": "ESNext",
     "moduleDetection": "force",
     "allowJs": true,

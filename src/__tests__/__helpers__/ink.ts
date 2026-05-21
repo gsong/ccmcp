@@ -11,6 +11,7 @@ function createMockInkRender(
 ): Instance {
   return {
     waitUntilExit: vi.fn(waitUntilExitImpl || (() => Promise.resolve())),
+    waitUntilRenderFlush: vi.fn(() => Promise.resolve()),
     rerender: vi.fn(),
     unmount: vi.fn(),
     cleanup: vi.fn(),
