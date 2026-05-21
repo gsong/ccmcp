@@ -1,7 +1,14 @@
 {
   "permissions": {
-    "allow": ["Bash(./ccmcp:*)", "Bash(biome:*)", "WebSearch"],
+    "allow": [
+      "Bash(./ccmcp:*)",
+      "Bash(biome:*)",
+      "WebSearch"
+    ],
     "deny": [],
     "ask": []
+  },
+  "enabledPlugins": {
+    "repo-maintenance@gsong-marketplace": true
   }
 }
