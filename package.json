@@ -60,7 +60,7 @@
     "@types/shell-quote": "^1.7.5",
     "actions-up": "^1.14.1",
     "ink-testing-library": "^4.0.0",
-    "npm-run-all2": "^8.0.4",
+    "npm-run-all2": "^9.0.0",
     "prettier": "^3.8.3",
     "tsup": "^8.5.1",
     "tsx": "^4.22.0",
