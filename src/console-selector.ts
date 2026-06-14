@@ -1,7 +1,7 @@
 import { createInterface } from "node:readline";
 import { render } from "ink";
 import React from "react";
-import { DEFAULT_CONFIG_DIR_LABEL } from "./constants.js";
+import { DEFAULT_CONFIG_DIR_DISPLAY } from "./constants.js";
 import type { McpConfig } from "./mcp-scanner.js";
 import { ConfigSelector } from "./tui/index.js";
 import { getPackageVersion } from "./utils.js";
@@ -31,7 +31,7 @@ export async function selectConfigs(
 ): Promise<McpConfig[]> {
   if (configs.length === 0) {
     console.log(
-      `No MCP configs found in ${configDir || DEFAULT_CONFIG_DIR_LABEL}`,
+      `No MCP configs found in ${configDir || `${DEFAULT_CONFIG_DIR_DISPLAY}/`}`,
     );
     return [];
   }

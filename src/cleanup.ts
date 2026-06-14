@@ -9,6 +9,7 @@ import {
 } from "node:fs/promises";
 import { join } from "node:path";
 import {
+  CACHE_FILE_EXTENSION,
   CACHE_FILE_PREFIX,
   CACHE_VERSION,
   CONFIG_FILE_EXTENSION,
@@ -65,7 +66,7 @@ async function getAllCacheFiles(): Promise<string[]> {
       .filter(
         (file) =>
           file.startsWith(CACHE_FILE_PREFIX) &&
-          file.endsWith(CONFIG_FILE_EXTENSION),
+          file.endsWith(CACHE_FILE_EXTENSION),
       )
       .map((file) => join(cacheDir, file));
   } catch {

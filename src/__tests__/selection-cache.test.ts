@@ -2,6 +2,7 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { CACHE_FILE_EXTENSION, CACHE_FILE_PREFIX } from "../constants.js";
 import {
   clearCache,
   getCacheDir,
@@ -173,7 +174,10 @@ describe("loadSelections and saveSelections", () => {
 
     // Manually create a corrupted cache file
     const hash = "abc123";
-    const filePath = join(cacheDir, `selections-${hash}.json`);
+    const filePath = join(
+      cacheDir,
+      `${CACHE_FILE_PREFIX}${hash}${CACHE_FILE_EXTENSION}`,
+    );
     await writeFile(filePath, "corrupted json", "utf-8");
 
     const loaded = await loadSelections(testProjectDir, testConfigDir);

@@ -4,9 +4,9 @@ import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir, platform } from "node:os";
 import { join } from "node:path";
 import {
+  CACHE_FILE_EXTENSION,
   CACHE_FILE_PREFIX,
   CACHE_VERSION,
-  CONFIG_FILE_EXTENSION,
 } from "./constants.js";
 
 export interface SelectionCache {
@@ -82,7 +82,7 @@ function getCacheFilePath(projectDir: string, configDir: string): string {
   const key = getCacheKey(projectDir, configDir);
   return join(
     getCacheDir(),
-    `${CACHE_FILE_PREFIX}${key}${CONFIG_FILE_EXTENSION}`,
+    `${CACHE_FILE_PREFIX}${key}${CACHE_FILE_EXTENSION}`,
   );
 }
 
@@ -140,8 +140,10 @@ export async function clearCache(): Promise<void> {
   const cacheDir = getCacheDir();
   try {
     const files = await readdir(cacheDir);
-    const cacheFiles = files.filter((file) =>
-      file.startsWith(CACHE_FILE_PREFIX),
+    const cacheFiles = files.filter(
+      (file) =>
+        file.startsWith(CACHE_FILE_PREFIX) &&
+        file.endsWith(CACHE_FILE_EXTENSION),
     );
     await Promise.all(
       cacheFiles.map((file) => rm(join(cacheDir, file), { force: true })),
