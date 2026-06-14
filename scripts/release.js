@@ -75,15 +75,16 @@ function validateVersionType(versionType) {
 function getNewVersion(versionType) {
   console.log(`🔄 Calculating new ${versionType} version...`);
   try {
-    execSync(`pnpm version ${versionType} --no-git-tag-version`, {
-      encoding: "utf8",
-      cwd: projectRoot,
-    });
-    // Read the bumped version directly from package.json rather than parsing
-    // pnpm's stdout, whose format varies across pnpm versions.
-    const { version } = JSON.parse(
-      readFileSync(join(projectRoot, "package.json"), "utf8"),
+    // --json returns structured output ([{ newVersion, ... }]) rather than the
+    // human-readable message whose format varies across pnpm versions.
+    const result = execSync(
+      `pnpm version ${versionType} --no-git-tag-version --json`,
+      {
+        encoding: "utf8",
+        cwd: projectRoot,
+      },
     );
+    const [{ newVersion: version }] = JSON.parse(result);
     const newVersion = `v${version}`;
     console.log(`✅ New version will be: ${newVersion}`);
     return newVersion;
