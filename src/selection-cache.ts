@@ -3,9 +3,14 @@ import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir, platform } from "node:os";
 import { join } from "node:path";
+import {
+  CACHE_FILE_PREFIX,
+  CACHE_VERSION,
+  CONFIG_FILE_EXTENSION,
+} from "./constants.js";
 
 export interface SelectionCache {
-  version: 1;
+  version: typeof CACHE_VERSION;
   projectDir: string;
   configDir: string;
   lastModified: string;
@@ -75,7 +80,10 @@ function getCacheKey(projectDir: string, configDir: string): string {
 
 function getCacheFilePath(projectDir: string, configDir: string): string {
   const key = getCacheKey(projectDir, configDir);
-  return join(getCacheDir(), `selections-${key}.json`);
+  return join(
+    getCacheDir(),
+    `${CACHE_FILE_PREFIX}${key}${CONFIG_FILE_EXTENSION}`,
+  );
 }
 
 export async function loadSelections(
@@ -88,7 +96,7 @@ export async function loadSelections(
     const content = await readFile(filePath, "utf-8");
     const cache: SelectionCache = JSON.parse(content);
 
-    if (cache.version !== 1) {
+    if (cache.version !== CACHE_VERSION) {
       return new Set();
     }
 
@@ -118,7 +126,7 @@ export async function saveSelections(
   await mkdir(cacheDir, { recursive: true });
 
   const cache: SelectionCache = {
-    version: 1,
+    version: CACHE_VERSION,
     projectDir,
     configDir,
     lastModified: new Date().toISOString(),
@@ -132,7 +140,9 @@ export async function clearCache(): Promise<void> {
   const cacheDir = getCacheDir();
   try {
     const files = await readdir(cacheDir);
-    const cacheFiles = files.filter((file) => file.startsWith("selections-"));
+    const cacheFiles = files.filter((file) =>
+      file.startsWith(CACHE_FILE_PREFIX),
+    );
     await Promise.all(
       cacheFiles.map((file) => rm(join(cacheDir, file), { force: true })),
     );

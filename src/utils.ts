@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { CONFIG_FILE_EXTENSION } from "./constants.js";
 
 export function getPackageVersion(): string {
   const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -18,8 +19,10 @@ export function formatConfigDisplayName(
   filename: string,
   serverNames: string[],
 ): string {
-  // Remove .json extension from filename for display
-  const baseFilename = filename.replace(/\.json$/i, "");
+  // Remove config extension from filename for display
+  const baseFilename = filename.toLowerCase().endsWith(CONFIG_FILE_EXTENSION)
+    ? filename.slice(0, -CONFIG_FILE_EXTENSION.length)
+    : filename;
 
   if (serverNames.length === 0) {
     return baseFilename;

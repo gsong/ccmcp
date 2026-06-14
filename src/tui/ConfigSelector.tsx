@@ -1,6 +1,7 @@
 import { Box, Text, useApp, useInput } from "ink";
 import type React from "react";
 import { useCallback, useState } from "react";
+import { DEFAULT_CONFIG_DIR_LABEL } from "../constants.js";
 import type { McpConfig } from "../mcp-scanner.js";
 import { ConfigPreview } from "./ConfigPreview.js";
 import { ErrorDisplay } from "./ErrorDisplay.js";
@@ -149,7 +150,7 @@ export const ConfigSelector: React.FC<ConfigSelectorProps> = ({
     return (
       <Box flexDirection="column">
         <Text color="yellow">
-          No valid MCP configs found in {configDir || "~/.claude/mcp-configs/"}
+          No valid MCP configs found in {configDir || DEFAULT_CONFIG_DIR_LABEL}
         </Text>
         <Text>Press any key to launch Claude Code without configs...</Text>
         {invalidConfigs.length > 0 && invalidConfigs[0] && (

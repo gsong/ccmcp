@@ -8,6 +8,11 @@ import { parseArgs } from "node:util";
 import { launchClaudeCode } from "./claude-launcher.js";
 import { cleanupCache } from "./cleanup.js";
 import { selectConfigs } from "./console-selector.js";
+import {
+  CLAUDE_DIR,
+  DEFAULT_CONFIG_DIR_DISPLAY,
+  MCP_CONFIGS_DIR,
+} from "./constants.js";
 import type { McpConfig } from "./mcp-scanner.js";
 import { MissingConfigDirectoryError, scanMcpConfigs } from "./mcp-scanner.js";
 import {
@@ -45,7 +50,7 @@ Description:
 Options:
   -h, --help                 Show this help message
   -v, --version              Show version information
-  --config-dir <dir>         Specify MCP config directory (default: ~/.claude/mcp-configs)
+  --config-dir <dir>         Specify MCP config directory (default: ${DEFAULT_CONFIG_DIR_DISPLAY})
   -i, --ignore-cache         Skip loading previously selected configs
   -n, --no-save              Don't save selections (ephemeral mode)
   --clear-cache              Clear all cached selections and exit
@@ -194,7 +199,7 @@ export async function main(): Promise<number> {
   if (values.cleanup) {
     const configDir = values["config-dir"] || process.env.CCMCP_CONFIG_DIR;
     const resolvedConfigDir =
-      configDir || join(homedir(), ".claude", "mcp-configs");
+      configDir || join(homedir(), CLAUDE_DIR, MCP_CONFIGS_DIR);
 
     const result = await cleanupCache({
       configDir: resolvedConfigDir,
@@ -227,7 +232,7 @@ export async function main(): Promise<number> {
     // Determine config directory with precedence: CLI > env > default
     const configDir = values["config-dir"] || process.env.CCMCP_CONFIG_DIR;
     const resolvedConfigDir =
-      configDir || join(homedir(), ".claude", "mcp-configs");
+      configDir || join(homedir(), CLAUDE_DIR, MCP_CONFIGS_DIR);
     const configs = await scanMcpConfigs(resolvedConfigDir);
 
     if (configs.length === 0) {

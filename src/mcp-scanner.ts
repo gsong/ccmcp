@@ -2,6 +2,11 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import {
+  CLAUDE_DIR,
+  CONFIG_FILE_EXTENSION,
+  MCP_CONFIGS_DIR,
+} from "./constants.js";
+import {
   extractServers,
   formatValidationErrors,
   validateMcpConfig,
@@ -28,7 +33,7 @@ export interface McpConfig {
 
 export async function scanMcpConfigs(configDir?: string): Promise<McpConfig[]> {
   const resolvedConfigDir =
-    configDir || join(homedir(), ".claude", "mcp-configs");
+    configDir || join(homedir(), CLAUDE_DIR, MCP_CONFIGS_DIR);
 
   try {
     await stat(resolvedConfigDir);
@@ -48,13 +53,15 @@ export async function scanMcpConfigs(configDir?: string): Promise<McpConfig[]> {
 
   try {
     const files = await readdir(resolvedConfigDir);
-    const jsonFiles = files.filter((file) => file.endsWith(".json"));
+    const jsonFiles = files.filter((file) =>
+      file.endsWith(CONFIG_FILE_EXTENSION),
+    );
 
     // Process files in parallel for better performance
     const configs = await Promise.all(
       jsonFiles.map(async (file): Promise<McpConfig> => {
         const filePath = join(resolvedConfigDir, file);
-        const name = file.replace(".json", "");
+        const name = file.replace(CONFIG_FILE_EXTENSION, "");
 
         try {
           const content = await readFile(filePath, "utf-8");

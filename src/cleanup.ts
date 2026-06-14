@@ -8,6 +8,11 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { join } from "node:path";
+import {
+  CACHE_FILE_PREFIX,
+  CACHE_VERSION,
+  CONFIG_FILE_EXTENSION,
+} from "./constants.js";
 import { getCacheDir, type SelectionCache } from "./selection-cache.js";
 
 export interface CleanupOptions {
@@ -58,7 +63,9 @@ async function getAllCacheFiles(): Promise<string[]> {
     const files = await readdir(cacheDir);
     return files
       .filter(
-        (file) => file.startsWith("selections-") && file.endsWith(".json"),
+        (file) =>
+          file.startsWith(CACHE_FILE_PREFIX) &&
+          file.endsWith(CONFIG_FILE_EXTENSION),
       )
       .map((file) => join(cacheDir, file));
   } catch {
@@ -71,7 +78,7 @@ async function loadCacheFile(filePath: string): Promise<SelectionCache | null> {
     const content = await readFile(filePath, "utf-8");
     const cache: SelectionCache = JSON.parse(content);
 
-    if (cache.version !== 1) {
+    if (cache.version !== CACHE_VERSION) {
       return null;
     }
 
@@ -178,7 +185,10 @@ async function cleanupInvalidServerReferences(
 
     const invalidConfigs: string[] = [];
     for (const configName of cache.selectedConfigs) {
-      const configPath = join(cache.configDir, `${configName}.json`);
+      const configPath = join(
+        cache.configDir,
+        `${configName}${CONFIG_FILE_EXTENSION}`,
+      );
       const exists = await fileExists(configPath);
       if (!exists) {
         invalidConfigs.push(configName);
@@ -269,7 +279,9 @@ async function cleanupBrokenSymlinks(
 ): Promise<void> {
   try {
     const files = await readdir(options.configDir);
-    const jsonFiles = files.filter((file) => file.endsWith(".json"));
+    const jsonFiles = files.filter((file) =>
+      file.endsWith(CONFIG_FILE_EXTENSION),
+    );
     const brokenLinks: string[] = [];
 
     for (const file of jsonFiles) {
