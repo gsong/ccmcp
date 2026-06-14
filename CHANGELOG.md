@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 Looking at these conventional commits, they're all maintenance tasks (chore/docs) with no user-facing features or bug fixes. Here are the release notes:
 
+## [v1.4.0] - 2026-06-14
+
+### Bug Fixes
+
+- Read bumped version from package.json in release script
+
+### Improvements
+
+- Decouple cache and config file extensions
+- Extract shared constants
+- Install zizmor via prebuilt binary instead of cargo
+- Migrate pnpm config to pnpm-workspace.yaml
+- Group renovate dependency updates by type
+- Upgrade Node to 22 LTS, pnpm to 11, and all dependencies
+- Update tsup target to node20
+- Use .node-version file for Node.js version management
+- Update GitHub Actions to latest versions
+- Require 7-day minimum release age for dependencies
+
 ## [v1.3.0] - 2025-12-07
 
 ### Features
