@@ -7,6 +7,12 @@ overrides:
   # vite/vitest have peer dependency on @types/node@^22, but latest is 25.x
   # Pin to 22.x until they update their peer deps
   "@types/node": "^22"
+  # Security: force patched transitive vite/esbuild (dev-only, via vitest).
+  # Fixes GHSA-fx2h-pf6j-xcff, -v6wh-96g9-6wx3, -p9ff-h696-f583,
+  # -v2wj-q39q-566r, -4w7w-66w2-5vf9 (vite dev-server) and
+  # GHSA-g7r4-m6w7-qqqr (esbuild). vitest supports vite ^6||^7||^8.
+  vite: "^8.0.0"
+  esbuild: "^0.28.1"
 
 strictDepBuilds: true
 
