@@ -20,7 +20,7 @@
   "engines": {
     "node": ">=22.13.0"
   },
-  "packageManager": "pnpm@11.5.2",
+  "packageManager": "pnpm@11.10.0",
   "bin": {
     "ccmcp": "./dist/index.js"
   },
@@ -48,23 +48,23 @@
     "_release:clean-files": "rm -f .tmp-tag-notes.txt .tmp-release-prompt.txt"
   },
   "dependencies": {
-    "ink": "^7.0.5",
+    "ink": "^7.1.0",
     "react": "^19.2.7",
-    "shell-quote": "^1.8.4",
+    "shell-quote": "^1.9.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.16",
+    "@biomejs/biome": "^2.5.3",
     "@types/node": "^22",
     "@types/react": "^19.2.17",
     "@types/shell-quote": "^1.7.5",
-    "actions-up": "^1.14.2",
+    "actions-up": "^1.16.0",
     "ink-testing-library": "^4.0.0",
-    "npm-run-all2": "^9.0.1",
-    "prettier": "^3.8.3",
+    "npm-run-all2": "^9.0.2",
+    "prettier": "^3.9.5",
     "tsup": "^8.5.1",
-    "tsx": "^4.22.4",
+    "tsx": "^4.23.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.10"
   }
 }

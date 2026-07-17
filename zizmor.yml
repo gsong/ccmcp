@@ -9,7 +9,17 @@
 # - Only runs on tagged releases
 # - Publishing doesn't happen frequently, so cache benefit is minimal
 
+# Suppress adhoc-packages warning for publish workflow
+# Rationale: `npm install -g npm@latest` is required to obtain OIDC / trusted
+# publishing (provenance) support, which older bundled npm versions lack:
+# - Installs npm itself from the official registry, not an arbitrary package
+# - Only runs on tagged releases in the restricted publish job
+# - Keeping npm current is intentional so new OIDC/provenance fixes are picked up
+
 rules:
   cache-poisoning:
+    ignore:
+      - "publish.yml"
+  adhoc-packages:
     ignore:
       - "publish.yml"
