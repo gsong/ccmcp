@@ -215,7 +215,7 @@ To enable automated publishing, configure Trusted Publishers on npmjs.com:
 - **Prettier**: Formatting for markdown, JSON, YAML files
 - **TypeScript**: Type checking
 - **Vitest**: Modern unit testing framework
-- **tsup**: TypeScript bundler for building the project
+- **tsdown**: Rolldown-based TypeScript bundler for building the project
 - **zizmor**: Security auditing for GitHub Actions workflows
 
 ### Libraries and Frameworks
@@ -229,7 +229,7 @@ To enable automated publishing, configure Trusted Publishers on npmjs.com:
 
 - `biome.json` - Biome linter and formatter settings
 - `tsconfig.json` - TypeScript compiler configuration
-- `tsup.config.ts` - tsup bundler configuration
+- `tsdown.config.ts` - tsdown bundler configuration
 - `vitest.config.ts` - Vitest test framework configuration
 - `.prettierignore` - Files excluded from Prettier formatting
 - `.gitignore` - Git ignore patterns including build artifacts

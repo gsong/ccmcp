@@ -59,7 +59,7 @@ Each specification document includes:
 - **Language**: TypeScript with strict type checking
 - **UI Framework**: React 19+ and Ink 6+ for terminal interfaces
 - **Validation**: Zod 4+ for runtime schema validation
-- **Build Tools**: tsup for bundling, Biome for linting, Prettier for formatting
+- **Build Tools**: tsdown for bundling, Biome for linting, Prettier for formatting
 - **Testing**: Vitest 4+ with ink-testing-library
 - **Package Manager**: pnpm
 

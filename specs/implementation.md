@@ -54,7 +54,7 @@ ccmcp/
 │   └── generate-release-notes.js
 ├── package.json            # Package configuration
 ├── tsconfig.json          # TypeScript configuration
-├── tsup.config.ts         # Build configuration
+├── tsdown.config.ts       # Build configuration
 ├── vitest.config.ts       # Test configuration
 ├── biome.json             # Linting and formatting config
 └── .claude/CLAUDE.md      # Project-specific instructions
@@ -130,8 +130,8 @@ import { scanMcpConfigs } from "./mcp-scanner.js";
 **Key Configuration Decisions**:
 
 - **ES2022 Target**: Modern JavaScript features with Node 20+ support
-- **ESNext Module + Bundler Resolution**: Modern module handling optimized for tsup bundler
-- **noEmit**: TypeScript used only for type checking; tsup handles compilation
+- **ESNext Module + Bundler Resolution**: Modern module handling optimized for tsdown bundler
+- **noEmit**: TypeScript used only for type checking; tsdown handles compilation
 - **Strict Mode**: Maximum type safety with additional strictness flags
 - **JSX Support**: React component compilation with react-jsx transform
 - **erasableSyntaxOnly**: Ensures type annotations can be erased without runtime impact
@@ -201,7 +201,7 @@ import { scanMcpConfigs } from "./mcp-scanner.js";
     "release:patch": "node scripts/release.js patch",
     "release:minor": "node scripts/release.js minor",
     "release:major": "node scripts/release.js major",
-    "_build:compile": "tsup",
+    "_build:compile": "tsdown",
     "_build:clean": "rm -rf dist",
     "_fix:prettier": "prettier --write '**/*.{md,json,yaml,yml}'",
     "_release:generate-notes": "node scripts/generate-release-notes.js",
@@ -214,7 +214,7 @@ import { scanMcpConfigs } from "./mcp-scanner.js";
 
 - **dev**: Run CLI in development mode using tsx
 - **test**: Run tests using Vitest
-- **build**: Full build pipeline (lint → type-check → compile with tsup)
+- **build**: Full build pipeline (lint → type-check → compile with tsdown)
 - **fix**: Auto-fix all code quality issues (lint:fix → prettier → type-check)
 - **lint**: Code linting with Biome
 - **lint:actions**: GitHub Actions workflow linting with actionlint
@@ -254,23 +254,24 @@ pnpm run build
 # Build steps breakdown:
 # 1. lint       - Code quality validation using Biome
 # 2. type-check - TypeScript compilation check
-# 3. _compile   - JavaScript bundling using tsup
+# 3. _compile   - JavaScript bundling using tsdown
 ```
 
-### Build Configuration (`tsup.config.ts`)
+### Build Configuration (`tsdown.config.ts`)
 
 ```typescript
 export default defineConfig({
   entry: ["src/index.ts"],
   format: ["esm"],
   dts: true,
-  splitting: false,
-  sourcemap: false,
+  platform: "node",
+  target: "node22",
+  deps: {
+    neverBundle: ["ink", "react", "zod", "shell-quote"],
+  },
   clean: true,
-  external: ["ink", "react", "zod", "shell-quote"],
-  target: "node18",
-  shims: false,
-  bundle: true,
+  sourcemap: false,
+  outExtensions: () => ({ js: ".js" }),
 });
 ```
 
@@ -506,7 +507,7 @@ const configs = await Promise.all(
 
 ### Startup Performance
 
-- **Fast Bundler**: tsup provides near-instant startup
+- **Fast Bundler**: tsdown (Rolldown) provides near-instant startup
 - **Parallel Operations**: File scanning and validation run concurrently
 - **Optimized Dependencies**: External dependencies reduce bundle size
 
@@ -622,7 +623,7 @@ README.md
 LICENSE
 ```
 
-Note: With tsup bundling, the entire application is bundled into a single `index.js` file, with external dependencies (React, Ink, Zod, shell-quote) loaded from node_modules.
+Note: With tsdown bundling, the entire application is bundled into a single `index.js` file, with external dependencies (React, Ink, Zod, shell-quote) loaded from node_modules.
 
 ### Installation Verification
 

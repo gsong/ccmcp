@@ -41,7 +41,7 @@
     "release:patch": "node scripts/release.js patch",
     "release:minor": "node scripts/release.js minor",
     "release:major": "node scripts/release.js major",
-    "_build:compile": "tsup",
+    "_build:compile": "tsdown",
     "_build:clean": "rm -rf dist",
     "_fix:prettier": "prettier --write '**/*.{md,json,yaml,yml}'",
     "_release:generate-notes": "node scripts/generate-release-notes.js",
@@ -62,9 +62,9 @@
     "ink-testing-library": "^4.0.0",
     "npm-run-all2": "^9.0.2",
     "prettier": "^3.9.5",
-    "tsup": "^8.5.1",
+    "tsdown": "^0.22.4",
     "tsx": "^4.23.0",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   }
 }
