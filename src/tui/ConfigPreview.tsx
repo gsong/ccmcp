@@ -19,7 +19,7 @@ export const ConfigPreview: React.FC<ConfigPreviewProps> = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!config || !config.valid) {
+    if (!config?.valid) {
       setContent("");
       return;
     }
