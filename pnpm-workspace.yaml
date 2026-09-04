@@ -7,7 +7,7 @@ overrides:
   # Keep @types/node aligned with the Node 22 floor in package.json engines,
   # so type checking cannot accept APIs missing on the oldest supported runtime.
   # Node 22 is EOL 2027-04-30 - revisit when the floor moves.
-  "@types/node": "^22"
+  "@types/node": "^24.0.0"
   # Security: force patched transitive vite/esbuild (dev-only, via vitest).
   # Fixes GHSA-fx2h-pf6j-xcff, -v6wh-96g9-6wx3, -p9ff-h696-f583,
   # -v2wj-q39q-566r, -4w7w-66w2-5vf9 (vite dev-server) and
