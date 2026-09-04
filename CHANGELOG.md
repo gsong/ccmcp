@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 Looking at these conventional commits, they're all maintenance tasks (chore/docs) with no user-facing features or bug fixes. Here are the release notes:
 
+No Features or Breaking Changes exist in this set, so I dropped those two headings. The chore and docs commits went under Improvements, and the duplicate "routine repo maintenance" collapsed to one line.
+
+```markdown
+## [v1.4.1] - 2026-09-04
+
+### Bug Fixes
+
+- Bump transitive postcss and nanoid to patched versions
+- Bump transitive vite and esbuild to patched versions
+
+### Improvements
+
+- Use an optional chain in ConfigPreview
+- Read the bumped version from `pnpm version --json`
+- Migrate the build from tsup to tsdown
+- Upgrade pnpm to 12 and refresh dependencies
+- Repin GitHub Actions to current releases
+- Ignore local mise overrides
+- Correct the @types/node override rationale
+- Routine repository maintenance
+```
+
 ## [v1.4.0] - 2026-06-14
 
 ### Bug Fixes
