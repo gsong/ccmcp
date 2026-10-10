@@ -115,8 +115,8 @@ importers:
   .:
     dependencies:
       ink:
-        specifier: ^7.1.1
-        version: 7.1.1(@types/react@19.2.18)(react@19.2.8)
+        specifier: ^8.0.0
+        version: 8.0.0(@types/react@19.2.18)(react@19.2.8)
       react:
         specifier: ^19.2.8
         version: 19.2.8
@@ -166,8 +166,8 @@ importers:
 
 packages:
 
-  '@alcalzone/ansi-tokenize@0.3.0':
-    resolution: {integrity: sha512-p+CMKJ93HFmLkjXKlXiVGlMQEuRb6H0MokBSwUsX+S6BRX8eV5naFZpQJFfJHjRZY0Hmnqy1/r6UWl3x+19zYA==}
+  '@alcalzone/ansi-tokenize@0.3.1':
+    resolution: {integrity: sha512-cUD0PT0YX+rImRhfn7BfMRduP/tX/Zqt/N0dHlAyn2RlcJssCb5KsCJkhln61eh9vuJDkH8wKn3L8zJzzWXPFg==}
     engines: {node: '>=18'}
 
   '@biomejs/biome@2.5.11':
@@ -966,9 +966,9 @@ packages:
     resolution: {integrity: sha512-NUPRluOfOiTKBKvWPtSD4PhFvWCqOi0BGStNWs57X9js7XGTprSmFoz5F0tWhR4WPjNeR9jXqdC7/UpSJTnlRg==}
     engines: {node: '>=18'}
 
-  chalk@5.6.2:
-    resolution: {integrity: sha512-7NzBL0rN6fMUW+f7A6Io4h40qQlG+xGmtMxfbnH/K7TAtt8JQWVQK+6g0UXKMeVJoyV5EkkNsErQ8pVD3bLHbA==}
-    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
+  chalk@6.0.1:
+    resolution: {integrity: sha512-/Ce6KNm3vIbWdMlNna6RVIZ/ICQxnJxCicet5LBKK9ZffBkqzDw0xh9EiKSljdRtiIQ1S1z4YgcscUUGzNCWrA==}
+    engines: {node: '>=22'}
 
   cli-boxes@4.0.1:
     resolution: {integrity: sha512-5IOn+jcCEHEraYolBPs/sT4BxYCe2nHg374OPiItB1O96KZFseS2gthU4twyYzeDcFew4DaUM/xwc5BQf08JJw==}
@@ -1031,8 +1031,8 @@ packages:
   es-module-lexer@2.3.1:
     resolution: {integrity: sha512-shc1dbU90Yl/xq1QrC7QRtfcwURZuVRfPhZbDoldJ1cn1gzDvBaBWlv0eFolj5+0znnPJz5TXLxsN77X/12KTA==}
 
-  es-toolkit@1.49.0:
-    resolution: {integrity: sha512-G5iZ6Pc/FNRY/soKZHC+TxGDD83rHUDXxzaWhGCX44vAv/tMs56WMusnm/KMNK+luUPsgA9U28cGr4RDlSzL2g==}
+  es-toolkit@1.52.0:
+    resolution: {integrity: sha512-XTNEJQh1tY1ZJVcf6ayP/2n4ZPyaHlW2FWs7xvw5ddPuhUVjLD3olQVQS7kf58JbAB48iL0uL/jerTrjtV3lDA==}
 
   esbuild@0.28.1:
     resolution: {integrity: sha512-HrJrvZv5ayxBzPfwphOoNzkzOIIlifzk0KJrGK2c8R4+LKpMtpYLQeUdjnwjWv/LZlkH2laZk+4w78pi99D4Vw==}
@@ -1092,12 +1092,12 @@ packages:
       '@types/react':
         optional: true
 
-  ink@7.1.1:
-    resolution: {integrity: sha512-Y43xxa1ZSPvpmfLHcN5o+OdP8Rf8ykkNJEuKYOUNZKT8wXVNLFTtEm1nSDMQkfBH+YANF4Xuu0hhZ4ejqAtN2w==}
+  ink@8.0.0:
+    resolution: {integrity: sha512-M2aFwZOqmkFxCwedy6xrP4E+DGoK57iahAFnfTqNyOyJ54O7DZzu027z/NI8EGy44Sw9O9BcbTF4QEUS2GHAtg==}
     engines: {node: '>=22'}
     peerDependencies:
-      '@types/react': '>=19.2.0'
-      react: '>=19.2.0'
+      '@types/react': '>=19.3.0'
+      react: '>=19.3.0'
       react-devtools-core: '>=6.1.2'
     peerDependenciesMeta:
       '@types/react':
@@ -1274,11 +1274,15 @@ packages:
   quansync@1.0.0:
     resolution: {integrity: sha512-5xZacEEufv3HSTPQuchrvV6soaiACMFnq1H8wkVioctoH3TRha9Sz66lOxRwPK/qZj7HPiSveih9yAyh98gvqA==}
 
-  react-reconciler@0.33.0:
-    resolution: {integrity: sha512-KetWRytFv1epdpJc3J4G75I4WrplZE5jOL7Yq0p34+OVOKF4Se7WrdIdVC45XsSSmUTlht2FM/fM1FZb1mfQeA==}
+  quick-lru@7.3.0:
+    resolution: {integrity: sha512-k9lSsjl36EJdK7I06v7APZCbyGT2vMTsYSRX1Q2nbYmnkBqgUhRkAuzH08Ciotteu/PLJmIF2+tti7o3C/ts2g==}
+    engines: {node: '>=18'}
+
+  react-reconciler@0.34.0:
+    resolution: {integrity: sha512-eVibvB1fc9j5Qf1KRkiM3GzRPBdjg2P6G6QV2f3P6Eb3OGMxRBhdg2rrUwjbV5JrQaJj8nOa8uajmmJA5tJWjQ==}
     engines: {node: '>=0.10.0'}
     peerDependencies:
-      react: ^19.2.0
+      react: ^19.3.0
 
   react@19.2.8:
     resolution: {integrity: sha512-PWaYA1L/q9u2u7xYQi+Y3L3Yfnie7XyLeaJICV1MGD6LprsBxcAqGjYyr0eY3p+QdsA+x/Irkt4Qif8D63+Sbw==}
@@ -1324,8 +1328,8 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
-  scheduler@0.27.0:
-    resolution: {integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==}
+  scheduler@0.28.0:
+    resolution: {integrity: sha512-juorfCmIkIw8tT+p5BXSm6PJjQF/ycEYmKyzURCIt/RaZIhL+PulbQ9Yu2z1HdOJDdqDTlxA1+xKBmHXJsczAw==}
 
   semver@7.8.5:
     resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
@@ -1370,6 +1374,10 @@ packages:
 
   string-width@8.2.2:
     resolution: {integrity: sha512-GaPUh5gfdrYzqeVNZvUfT23vYYxXzKYidUcnMtJg/3rxRV63EFZy3k6xfKlmfeJD0176lnUV/Usr3XcwSvFzpg==}
+    engines: {node: '>=20'}
+
+  string-width@8.3.0:
+    resolution: {integrity: sha512-ZbmZM0JCihQN91dWnxoipT2KOEyHqEyfRXUyjuRhW8b/xnqPDoq4gWEVApTVa9db2wN8mmoikgFBbjh71+cGeQ==}
     engines: {node: '>=20'}
 
   strip-ansi@6.0.1:
@@ -1449,8 +1457,8 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  type-fest@5.8.0:
-    resolution: {integrity: sha512-YGYEVz3Fm5iy/AybuA0oyNFq7H4CgQNfRp/qfe8nurE1kuCeNm3/vfm9X4Mtl+qLyaKJUh5xrFZwogr41SMjYA==}
+  type-fest@5.10.0:
+    resolution: {integrity: sha512-NoSdpq/WEiAg5sjmBkmV/hfxv6HJH4NqPNrqjtSO5CwRmpsDfaf4begxW34KdJykH/l1yHtwBWQkCRdoXO8mPA==}
     engines: {node: '>=20'}
 
   typescript@7.0.2:
@@ -1571,21 +1579,9 @@ packages:
     resolution: {integrity: sha512-U89AsyEeAsyoF0zVJBkG9zBgekjgjK7yk9sje3F4IQpXBJ10TF6ByLlIfjMhcmHMJgHZI4KHt4rdNfktzxIAMA==}
     engines: {node: '>=20'}
 
-  wrap-ansi@10.0.0:
-    resolution: {integrity: sha512-SGcvg80f0wUy2/fXES19feHMz8E0JoXv2uNgHOu4Dgi2OrCy1lqwFYEJz1BLbDI0exjPMe/ZdzZ/YpGECBG/aQ==}
+  wrap-ansi@10.0.2:
+    resolution: {integrity: sha512-6OLRNZqRntVGBm26ghZ5eZhCuWWyOkRCSn8XsOIuq5stpCE/tjLbdozd93naILZig0lmD8ANfRwnhn0DLeXGlg==}
     engines: {node: '>=20'}
-
-  ws@8.21.1:
-    resolution: {integrity: sha512-+0NTnW77fFN/DjQi6k/Sq/Yvk4Sgajw7urW8V+asjXnRgDs9gyGkdb7EzgfhA4goXsRIZKE28fzIXBHEzhuiWw==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
 
   yaml@2.9.0:
     resolution: {integrity: sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==}
@@ -1609,7 +1605,7 @@ packages:
 
 snapshots:
 
-  '@alcalzone/ansi-tokenize@0.3.0':
+  '@alcalzone/ansi-tokenize@0.3.1':
     dependencies:
       ansi-styles: 6.2.3
       is-fullwidth-code-point: 5.1.0
@@ -2111,7 +2107,7 @@ snapshots:
 
   chai@6.2.2: {}
 
-  chalk@5.6.2: {}
+  chalk@6.0.1: {}
 
   cli-boxes@4.0.1: {}
 
@@ -2157,7 +2153,7 @@ snapshots:
 
   es-module-lexer@2.3.1: {}
 
-  es-toolkit@1.49.0: {}
+  es-toolkit@1.52.0: {}
 
   esbuild@0.28.1:
     optionalDependencies:
@@ -2219,39 +2215,34 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.18
 
-  ink@7.1.1(@types/react@19.2.18)(react@19.2.8):
+  ink@8.0.0(@types/react@19.2.18)(react@19.2.8):
     dependencies:
-      '@alcalzone/ansi-tokenize': 0.3.0
+      '@alcalzone/ansi-tokenize': 0.3.1
       ansi-escapes: 7.3.0
-      ansi-styles: 6.2.3
+      ansi-styles: 7.0.0
       auto-bind: 5.0.1
-      chalk: 5.6.2
+      chalk: 6.0.1
       cli-boxes: 4.0.1
       cli-cursor: 4.0.0
       cli-truncate: 6.1.1
       code-excerpt: 4.0.0
-      es-toolkit: 1.49.0
+      es-toolkit: 1.52.0
       indent-string: 5.0.0
       is-in-ci: 2.0.0
       patch-console: 2.0.0
+      quick-lru: 7.3.0
       react: 19.2.8
-      react-reconciler: 0.33.0(react@19.2.8)
-      scheduler: 0.27.0
+      react-reconciler: 0.34.0(react@19.2.8)
       signal-exit: 3.0.7
-      slice-ansi: 9.0.0
       stack-utils: 2.0.6
-      string-width: 8.2.2
+      string-width: 8.3.0
       terminal-size: 4.0.1
-      type-fest: 5.8.0
+      type-fest: 5.10.0
       widest-line: 6.0.0
-      wrap-ansi: 10.0.0
-      ws: 8.21.1
+      wrap-ansi: 10.0.2
       yoga-layout: 3.2.1
     optionalDependencies:
       '@types/react': 19.2.18
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
 
   is-fullwidth-code-point@5.1.0:
     dependencies:
@@ -2371,10 +2362,12 @@ snapshots:
 
   quansync@1.0.0: {}
 
-  react-reconciler@0.33.0(react@19.2.8):
+  quick-lru@7.3.0: {}
+
+  react-reconciler@0.34.0(react@19.2.8):
     dependencies:
       react: 19.2.8
-      scheduler: 0.27.0
+      scheduler: 0.28.0
 
   react@19.2.8: {}
 
@@ -2446,7 +2439,7 @@ snapshots:
       '@rolldown/binding-win32-arm64-msvc': 1.2.0
       '@rolldown/binding-win32-x64-msvc': 1.2.0
 
-  scheduler@0.27.0: {}
+  scheduler@0.28.0: {}
 
   semver@7.8.5: {}
 
@@ -2478,6 +2471,11 @@ snapshots:
   std-env@4.2.0: {}
 
   string-width@8.2.2:
+    dependencies:
+      get-east-asian-width: 1.6.0
+      strip-ansi: 7.2.0
+
+  string-width@8.3.0:
     dependencies:
       get-east-asian-width: 1.6.0
       strip-ansi: 7.2.0
@@ -2542,7 +2540,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  type-fest@5.8.0:
+  type-fest@5.10.0:
     dependencies:
       tagged-tag: 1.0.0
 
@@ -2636,13 +2634,10 @@ snapshots:
     dependencies:
       string-width: 8.2.2
 
-  wrap-ansi@10.0.0:
+  wrap-ansi@10.0.2:
     dependencies:
       ansi-styles: 6.2.3
       string-width: 8.2.2
-      strip-ansi: 7.2.0
-
-  ws@8.21.1: {}
 
   yaml@2.9.0: {}
 
