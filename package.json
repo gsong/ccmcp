@@ -58,7 +58,7 @@
     "@types/node": "^22",
     "@types/react": "^19.2.18",
     "@types/shell-quote": "^1.7.5",
-    "actions-up": "^1.18.0",
+    "actions-up": "^2.0.0",
     "ink-testing-library": "^4.0.0",
     "npm-run-all2": "^9.0.3",
     "prettier": "^3.9.6",
