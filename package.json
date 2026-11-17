@@ -48,7 +48,7 @@
     "_release:clean-files": "rm -f .tmp-tag-notes.txt .tmp-release-prompt.txt"
   },
   "dependencies": {
-    "ink": "^7.1.1",
+    "ink": "^8.0.0",
     "react": "^19.2.8",
     "shell-quote": "^1.10.0",
     "zod": "^4.5.1"
